@@ -50,7 +50,30 @@
         
         <div class="timer" id="timer">15</div>
         
-        <!-- هنا هتحط كود EZmob الجديد بعد ما تاخذه -->
+        <!-- كود EZmob In-Page Push للميني آب -->
+        <script>
+          (function(i,n,p,a,g,e){
+            i.inpagepush = i.inpagepush || function() {
+              (i.inpagepush.q=(i.inpagepush.q||[])).push(arguments)
+            };
+            var s=n.getElementsByTagName('head')[0];
+            var q=n.createElement('script'); q.async=1;
+            q.src='//static.qualiclicks.com/inpage/inpage.js';
+            s.appendChild(q);
+            i.inpagepush('init', {
+              host: 'xml.qualiclicks.com',
+              feed: 50198,
+              auth : '',
+              subid: '',
+              refresh: 120,
+              position: 'top',
+              slots: 2,
+              query : '',
+              nodesrc : true
+            });
+            i.inpagepush('show');
+          })(window, document);
+        </script>
         
         <div class="message" id="status">
             شاهد الإعلان وانتظر...
