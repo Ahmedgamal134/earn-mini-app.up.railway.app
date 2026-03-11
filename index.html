@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مشاهدة إعلان - بوت الربح</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            max-width: 500px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+        .timer {
+            font-size: 72px;
+            font-weight: bold;
+            margin: 30px 0;
+            color: #ffd700;
+        }
+        .message {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 بوت الربح الذكي</h1>
+        
+        <div class="message">
+            <h2>📺 شاهد الإعلان واكسب نقاط</h2>
+            <p>انتظر 15 ثانية بعد مشاهدة الإعلان</p>
+        </div>
+        
+        <div class="timer" id="timer">15</div>
+        
+        <!-- هنا هتحط كود EZmob الجديد بعد ما تاخذه -->
+        
+        <div class="message" id="status">
+            شاهد الإعلان وانتظر...
+        </div>
+    </div>
+    
+    <script>
+        let timeLeft = 15;
+        const timerElement = document.getElementById('timer');
+        const statusElement = document.getElementById('status');
+        
+        const timer = setInterval(() => {
+            timeLeft--;
+            timerElement.textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                timerElement.style.display = 'none';
+                statusElement.innerHTML = '✅ تمت المشاهدة! يمكنك العودة للبوت لاستلام نقاطك';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
