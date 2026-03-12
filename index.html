@@ -2,13 +2,11 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <!-- كود التحقق من HilltopAds (اختياري، مش ضروري) -->
-    <meta name="referrer" content="no-referrer-when-downgrade" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مشاهدة إعلان - بوت الربح</title>
     
-    <!-- كود Monetag MultiTag -->
-    <script src="https://quge5.com/88/tag.min.js" data-zone="219000" async data-cfasync="false"></script>
+    <!-- 1. مكتبة TADS Widget -->
+    <script src="https://w.tads.me/widget.js"></script>
     
     <style>
         body {
@@ -43,6 +41,13 @@
             padding: 20px;
             margin: 20px 0;
         }
+        #tads-container-9544 {
+            margin: 20px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            min-height: 200px; /* ارتفاع مناسب لعرض الإعلان */
+        }
     </style>
 </head>
 <body>
@@ -56,12 +61,76 @@
         
         <div class="timer" id="timer">15</div>
         
+        <!-- 2. حاوية الإعلان (الرقم 9544 هو Widget ID الخاص بنا) -->
+        <div id="tads-container-9544"></div>
+        
+        <!-- 3. كود تهيئة TADS Widget (Text-Graphic Block - TGB) مع ربط المكافأة بالبوت -->
+        <script>
+            // الدوال اللي هتتواصل مع البوت عشان تدي المكافأة
+            const rewardUser = (adId, type) => {
+                console.log(`✅ يجب مكافأة المستخدم. Ad ID: ${adId}, Type: ${type}`);
+                // هنا هنبعت إشارة للبوت (لكن ده محتاج Webhook، هنستخدم المؤقت بداله)
+                // بدل ما نعقدها، هنعتمد على نفس النظام: المستخدم هيرجع للبوت ويضغط على زر استلام.
+            };
+
+            const onAdsNotFound = () => {
+                console.log('⚠️ لا توجد إعلانات متاحة حالياً.');
+                // عرض رسالة للمستخدم
+                const container = document.getElementById('tads-container-9544');
+                if (container) {
+                    container.innerHTML = '<p style="color: #ccc;">لا توجد إعلانات حالياً، حاول لاحقاً.</p>';
+                }
+            };
+
+            // تهيئة الـ widget
+            const initTads = () => {
+                if (typeof window.tads === 'undefined' || typeof window.tads.init !== 'function') {
+                    console.error('❌ مكتبة TADS لم يتم تحميلها بعد.');
+                    return;
+                }
+
+                const adController = window.tads.init({
+                    widgetId: 9544,                 // الرقم بتاعنا
+                    type: 'static',                  // TGB
+                    debug: false,                     // False في مرحلة الإنتاج
+                    onClickReward: (adId) => {        // لما المستخدم يضغط على الإعلان
+                        console.log('👆 User clicked on ad:', adId);
+                        rewardUser(adId, 'click');
+                        // ممكن كمان نخزن في localStorage إنه ضغط
+                        localStorage.setItem('tads_ad_clicked', 'true');
+                    },
+                    onShowReward: (adId) => {         // لو الإعلان ظهر واتشاف (للفول سكرين)
+                        console.log('👀 User watched ad:', adId);
+                        rewardUser(adId, 'view');
+                    },
+                    onAdsNotFound: onAdsNotFound
+                });
+
+                adController.loadAd()
+                    .then(() => {
+                        adController.showAd();
+                    })
+                    .catch((err) => {
+                        console.error('❌ فشل في تحميل الإعلان:', err);
+                        onAdsNotFound();
+                    });
+            };
+
+            // تشغيل الكود بعد تحميل الصفحة
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initTads);
+            } else {
+                initTads();
+            }
+        </script>
+        
         <div class="message" id="status">
             شاهد الإعلان وانتظر...
         </div>
     </div>
     
     <script>
+        // المؤقت (زي ما هو)
         let timeLeft = 15;
         const timerElement = document.getElementById('timer');
         const statusElement = document.getElementById('status');
