@@ -2,102 +2,232 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشاهدة إعلان - بوت الربح</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مشاهدة إعلان - بوت الربح الذكي</title>
     
-    <!-- 1. مكتبة OnClickA الأساسية (مرة واحدة فقط) -->
+    <!-- مكتبة OnClickA الأساسية -->
     <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
     
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            padding: 20px;
-            color: white;
+            background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 16px;
+            color: white;
         }
+        
         .container {
-            max-width: 500px;
-            text-align: center;
-        }
-        h1 {
-            font-size: 28px;
-            margin-bottom: 30px;
-        }
-        .timer {
-            font-size: 72px;
-            font-weight: bold;
-            margin: 30px 0;
-            color: #ffd700;
-        }
-        .message {
+            width: 100%;
+            max-width: 480px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
+            border-radius: 32px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .timer-container {
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 20px;
             padding: 20px;
             margin: 20px 0;
+            text-align: center;
         }
+        
+        .timer {
+            font-size: 72px;
+            font-weight: 800;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            line-height: 1;
+            margin-bottom: 12px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ffa500);
+            width: 100%;
+            transition: width 1s linear;
+        }
+        
         .ad-buttons {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin: 20px 0;
+            gap: 12px;
+            margin: 24px 0;
         }
-        .watch-btn {
-            background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+        
+        .btn {
             border: none;
-            color: #333;
-            font-weight: bold;
+            border-radius: 50px;
+            padding: 16px 24px;
             font-size: 18px;
-            padding: 15px 30px;
-            border-radius: 30px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #333;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        .watch-btn:hover {
-            transform: scale(1.05);
+        
+        .btn:active {
+            transform: scale(0.97);
         }
-        .watch-btn.inpage {
-            background: linear-gradient(135deg, #6b8cff 0%, #4a6cf7 100%);
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-video {
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+        }
+        
+        .btn-inpage {
+            background: linear-gradient(135deg, #6b8cff, #4a6cf7);
+            color: white;
+        }
+        
+        .btn-claim {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+            margin-top: 16px;
+        }
+        
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 24px;
+            text-align: center;
+            font-size: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffd700;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .reward-message {
+            color: #4caf50;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>💰 بوت الربح الذكي</h1>
+        <div class="subtitle">شاهد الإعلانات واكسب نقاط</div>
         
-        <div class="message">
-            <h2>📺 شاهد الإعلان واكسب نقاط</h2>
-            <p>انتظر 15 ثانية بعد مشاهدة الإعلان</p>
+        <!-- مؤقت احترافي -->
+        <div class="timer-container">
+            <div class="timer" id="timer">30</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress" style="width: 100%"></div>
+            </div>
         </div>
         
-        <div class="timer" id="timer">15</div>
-        
+        <!-- أزرار الإعلانات -->
         <div class="ad-buttons">
-            <!-- زر إعلان الفيديو (Rewarded Video - Spot ID: 6113667) -->
-            <button class="watch-btn" onclick="playAd('video')">
-                ▶️ شاهد إعلان فيديو
+            <button class="btn btn-video" id="videoAdBtn" onclick="startAd('video')">
+                <span>▶️</span> شاهد إعلان فيديو
             </button>
-            
-            <!-- زر إعلان الصفحة الداخلية (Inpage - Spot ID: 6113665) -->
-            <button class="watch-btn inpage" onclick="playAd('inpage')">
-                📄 شاهد إعلان
+            <button class="btn btn-inpage" id="inpageAdBtn" onclick="startAd('inpage')">
+                <span>📄</span> شاهد إعلان
             </button>
         </div>
         
-        <div class="message" id="status">
-            شاهد الإعلان وانتظر...
+        <!-- زر استلام النقاط (يظهر بعد مشاهدة الإعلان) -->
+        <button class="btn btn-claim hidden" id="claimBtn" onclick="claimReward()">
+            <span>🎁</span> استلم نقاطك
+        </button>
+        
+        <!-- حالة المشاهدة -->
+        <div class="status" id="status">
+            ⏳ اضغط على أي إعلان للمشاهدة
+        </div>
+        
+        <!-- إحصائيات سريعة (للزينة) -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="todayCount">0</div>
+                <div>إعلانات اليوم</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalPoints">0</div>
+                <div>نقاطك</div>
+            </div>
         </div>
     </div>
     
     <script>
-        // =========== OnClickA Ad Initialization ===========
+        // =========== إعدادات OnClickA ===========
         let videoShow = null;
         let inpageShow = null;
+        let currentAdType = null;
+        let adWatched = false;
         
         // تهيئة إعلان الفيديو (Spot ID: 6113667)
         window.initCdTma?.({ id: '6113667' })
@@ -115,66 +245,159 @@
             })
             .catch(e => console.log('❌ Inpage init error:', e));
         
-        // دالة تشغيل الإعلان حسب النوع
-        function playAd(type) {
-            let showFunc = null;
-            if (type === 'video') {
-                showFunc = videoShow;
-            } else if (type === 'inpage') {
-                showFunc = inpageShow;
+        // =========== متغيرات المؤقت ===========
+        let timeLeft = 30;
+        let timerInterval = null;
+        let countdownActive = false;
+        const timerElement = document.getElementById('timer');
+        const progressElement = document.getElementById('progress');
+        const statusElement = document.getElementById('status');
+        const claimBtn = document.getElementById('claimBtn');
+        const videoAdBtn = document.getElementById('videoAdBtn');
+        const inpageAdBtn = document.getElementById('inpageAdBtn');
+        const todayCountElement = document.getElementById('todayCount');
+        const totalPointsElement = document.getElementById('totalPoints');
+        
+        // تحميل الإحصائيات من التخزين المحلي
+        let todayAds = parseInt(localStorage.getItem('todayAds') || '0');
+        let totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
+        let lastAdDate = localStorage.getItem('lastAdDate') || '';
+        
+        // التحقق من تاريخ اليوم
+        function checkDate() {
+            const today = new Date().toDateString();
+            if (lastAdDate !== today) {
+                todayAds = 0;
+                localStorage.setItem('todayAds', '0');
+                localStorage.setItem('lastAdDate', today);
+            }
+        }
+        checkDate();
+        updateStats();
+        
+        function updateStats() {
+            todayCountElement.textContent = todayAds;
+            totalPointsElement.textContent = totalPoints;
+        }
+        
+        // =========== نظام الإعلانات ===========
+        function startAd(type) {
+            if (countdownActive) {
+                alert('⏳ يوجد إعلان قيد المشاهدة حالياً');
+                return;
             }
             
+            if (todayAds >= 400) {
+                alert('❌ لقد استنفدت حد الإعلانات اليومي (400 إعلان)');
+                return;
+            }
+            
+            let showFunc = type === 'video' ? videoShow : inpageShow;
             if (!showFunc) {
                 alert('الإعلان لم يتم تحميله بعد، حاول مرة أخرى');
                 return;
             }
             
+            // تعطيل الأزرار أثناء تشغيل الإعلان
+            videoAdBtn.disabled = true;
+            inpageAdBtn.disabled = true;
+            countdownActive = true;
+            currentAdType = type;
+            adWatched = false;
+            
+            // تشغيل الإعلان
             showFunc()
                 .then(() => {
-                    console.log(`✅ ${type} ad played`);
-                    startTimer();
+                    console.log(`✅ ${type} ad started`);
+                    statusElement.innerHTML = '📺 يتم تشغيل الإعلان...';
+                    
+                    // بدء المؤقت بعد تأكيد بدء الإعلان
+                    setTimeout(() => {
+                        startCountdown();
+                    }, 1000);
                 })
                 .catch(e => {
                     console.log(`❌ ${type} ad error:`, e);
-                    alert('حدث خطأ في تشغيل الإعلان');
+                    statusElement.innerHTML = '❌ حدث خطأ في تشغيل الإعلان';
+                    resetButtons();
                 });
         }
         
-        // =========== المؤقت ونظام النقاط ===========
-        let timeLeft = 15;
-        const timerElement = document.getElementById('timer');
-        const statusElement = document.getElementById('status');
-        let timerInterval = null;
-        
-        function startTimer() {
-            timeLeft = 15;
-            timerElement.style.display = 'block';
+        // المؤقت وشريط التقدم
+        function startCountdown() {
+            timeLeft = 30;
             timerElement.textContent = timeLeft;
-            statusElement.innerHTML = 'شاهد الإعلان وانتظر...';
-            
-            if (timerInterval) clearInterval(timerInterval);
+            progressElement.style.width = '100%';
             
             timerInterval = setInterval(() => {
                 timeLeft--;
                 timerElement.textContent = timeLeft;
                 
+                // تحديث شريط التقدم
+                let progressPercent = (timeLeft / 30) * 100;
+                progressElement.style.width = progressPercent + '%';
+                
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    timerElement.style.display = 'none';
-                    statusElement.innerHTML = '✅ تمت المشاهدة! يمكنك العودة للبوت لاستلام نقاطك';
+                    timerElement.textContent = '0';
+                    progressElement.style.width = '0%';
+                    countdownActive = false;
+                    adWatched = true;
+                    
+                    statusElement.innerHTML = '✅ تمت المشاهدة! اضغط على استلام النقاط';
+                    claimBtn.classList.remove('hidden');
+                    
+                    // إعادة تفعيل الأزرار بعد انتهاء الإعلان
+                    videoAdBtn.disabled = false;
+                    inpageAdBtn.disabled = false;
                 }
             }, 1000);
         }
-    </script>
-    
-    <!-- الأكواد الإضافية التي أرسلتها (تم دمجها، وهي احتياطية وتعزز الأداء) -->
-    <script data-cfasync='false'>
-        // الكود الأول المحسن (احتياطي - تم تعديل Spot ID إلى 6113667)
-        (function(){/* هنا تم دمج الكود المحسن مع تعديل رقم Spot ID */})();
-    </script>
-    <script data-cfasync='false'>
-        // الكود الثاني المحسن (احتياطي - تم تعديل Spot ID إلى 6113665)
-        (function(){/* هنا تم دمج الكود المحسن مع تعديل رقم Spot ID */})();
+        
+        // استلام النقاط
+        function claimReward() {
+            if (!adWatched) {
+                alert('❌ يجب مشاهدة الإعلان أولاً!');
+                return;
+            }
+            
+            // إضافة النقطة
+            todayAds++;
+            totalPoints++;
+            localStorage.setItem('todayAds', todayAds.toString());
+            localStorage.setItem('totalPoints', totalPoints.toString());
+            localStorage.setItem('lastAdDate', new Date().toDateString());
+            updateStats();
+            
+            // إخفاء زر المكافأة وتحديث الحالة
+            claimBtn.classList.add('hidden');
+            statusElement.innerHTML = '✅ تم إضافة نقطة! شكراً لمشاهدتك الإعلان';
+            
+            // إعادة ضبط المتغيرات
+            adWatched = false;
+            currentAdType = null;
+            
+            // إعادة تفعيل الأزرار
+            videoAdBtn.disabled = false;
+            inpageAdBtn.disabled = false;
+        }
+        
+        // إعادة ضبط الأزرار في حالة الخطأ
+        function resetButtons() {
+            videoAdBtn.disabled = false;
+            inpageAdBtn.disabled = false;
+            countdownActive = false;
+        }
+        
+        // منع الغش (لو المستخدم حاول يضغط على زر المكافأة قبل ما يشوف الإعلان)
+        window.addEventListener('load', () => {
+            claimBtn.addEventListener('click', (e) => {
+                if (!adWatched) {
+                    e.preventDefault();
+                    alert('❌ لازم تشوف الإعلان الأول!');
+                }
+            });
+        });
     </script>
 </body>
 </html>
