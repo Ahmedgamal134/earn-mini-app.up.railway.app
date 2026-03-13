@@ -5,8 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>بوت الربح الذكي - التطبيق المصغر</title>
     
-    <!-- مكتبة OnClickA للإعلانات -->
+    <!-- مكتبة OnClickA الأساسية للـ Banners (الأهم لإعلان Inpage) -->
+    <script async src="https://js.onclckmn.com/static/onclicka.js" data-admpid="6113666"></script>
+    
+    <!-- مكتبة OnClickA للفيديو (موجودة) -->
     <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
+    
+    <!-- مكتبة Inpage (موجودة) -->
     <script src="https://js.onclckvd.com/tma/inpage.js" data-spotid="6113666"></script>
     
     <style>
@@ -162,7 +167,7 @@
             opacity: 0.7;
         }
         
-        /* صفحة عجلة الحظ */
+        /* صفحة عجلة الحظ المحسّنة */
         .wheel-page {
             text-align: center;
         }
@@ -171,7 +176,7 @@
             position: relative;
             width: 280px;
             height: 280px;
-            margin: 30px auto;
+            margin: 20px auto;
         }
         
         canvas {
@@ -180,25 +185,6 @@
             border-radius: 50%;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
             transition: transform 4s cubic-bezier(0.25, 0.1, 0.15, 1);
-        }
-        
-        .spin-btn {
-            background: linear-gradient(135deg, #ffd700, #ffa500);
-            border: none;
-            color: #333;
-            font-weight: 700;
-            font-size: 20px;
-            padding: 16px 32px;
-            border-radius: 50px;
-            margin: 20px 0;
-            cursor: pointer;
-            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-        
-        .spin-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
         }
         
         .pointer {
@@ -214,8 +200,57 @@
             z-index: 10;
         }
         
+        .wheel-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 16px;
+        }
+        
+        .wheel-stat {
+            text-align: center;
+        }
+        
+        .wheel-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffd700;
+        }
+        
+        .wheel-stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        .spin-btn {
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            border: none;
+            color: #333;
+            font-weight: 700;
+            font-size: 20px;
+            padding: 16px 32px;
+            border-radius: 50px;
+            margin: 10px 0;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .spin-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .spin-btn.secondary {
+            background: linear-gradient(135deg, #6b8cff, #4a6cf7);
+            color: white;
+        }
+        
         .prize-message {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid #ffd700;
             border-radius: 20px;
             padding: 16px;
             margin: 20px 0;
@@ -345,7 +380,6 @@
             left: 24px;
         }
         
-        /* مخفي */
         .page {
             display: none;
         }
@@ -426,17 +460,29 @@
             </div>
         </div>
         
-        <!-- صفحة عجلة الحظ -->
+        <!-- صفحة عجلة الحظ المحسّنة -->
         <div id="wheelPage" class="page">
-            <h2 style="text-align: center; margin-bottom: 20px;">🎡 عجلة الحظ</h2>
+            <h2 style="text-align: center; margin-bottom: 10px;">🎡 عجلة الحظ</h2>
+            
+            <div class="wheel-stats">
+                <div class="wheel-stat">
+                    <div class="wheel-stat-value" id="wheelBalance">0</div>
+                    <div class="wheel-stat-label">نقاطك</div>
+                </div>
+                <div class="wheel-stat">
+                    <div class="wheel-stat-value" id="wheelCost">50</div>
+                    <div class="wheel-stat-label">تكلفة اللعب</div>
+                </div>
+            </div>
             
             <div class="wheel-container">
                 <canvas id="wheelCanvas" width="280" height="280"></canvas>
                 <div class="pointer"></div>
             </div>
             
-            <div style="text-align: center;">
+            <div style="display: flex; gap: 10px; justify-content: center;">
                 <button class="spin-btn" id="spinBtn" onclick="spinWheel()">🎲 ابدأ الدوران</button>
+                <button class="spin-btn secondary" id="watchAdSpinBtn" onclick="spinWithAd()">📺 شاهد إعلان و العب مجاناً</button>
             </div>
             
             <div id="wheelResult" class="prize-message hidden">
@@ -444,18 +490,23 @@
             </div>
             
             <div style="background: rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-top: 20px;">
+                <h3 style="margin-bottom: 12px;">🎁 الجوائز المتاحة</h3>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span>🎁 الاشتراك مرة واحدة:</span>
-                    <span style="color: #ffd700;">50 نقطة</span>
+                    <span>🟥 10 نقاط</span>
+                    <span>🟩 20 نقطة</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>🟦 50 نقطة</span>
+                    <span>🟨 100 نقطة</span>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
-                    <span>🎁 الاشتراك الشهري:</span>
-                    <span style="color: #ffd700;">500 نقطة</span>
+                    <span>🟪 200 نقطة</span>
+                    <span>🟫 5 نقاط</span>
                 </div>
             </div>
         </div>
         
-        <!-- صفحة الإعلانات (معدلة مع الحاوية) -->
+        <!-- صفحة الإعلانات -->
         <div id="adsPage" class="page">
             <h2 style="text-align: center; margin-bottom: 20px;">📺 مشاهدة إعلانات</h2>
             
@@ -483,7 +534,7 @@
                 ⏳ اضغط على أي إعلان للمشاهدة
             </div>
             
-            <!-- ✅ الحاوية المطلوبة لإعلانات Inpage (تم إضافتها هنا) -->
+            <!-- الحاوية المطلوبة لإعلانات Inpage -->
             <div data-nat="6113666"></div>
         </div>
         
@@ -527,6 +578,7 @@
         let timerInterval = null;
         let timeLeft = 30;
         let countdownActive = false;
+        let pendingSpinWithAd = false;
         
         // تهيئة إعلان الفيديو (Spot ID: 6113667)
         window.initCdTma?.({ id: '6113667' })
@@ -577,6 +629,7 @@
         let totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
         let streak = parseInt(localStorage.getItem('streak') || '0');
         let lastCheckin = localStorage.getItem('lastCheckin') || '';
+        let wheelFreeSpins = parseInt(localStorage.getItem('wheelFreeSpins') || '0');
         
         // عناصر HTML
         const totalPointsEl = document.getElementById('totalPoints');
@@ -589,6 +642,11 @@
         const claimBtn = document.getElementById('claimBtn');
         const videoAdBtn = document.getElementById('videoAdBtn');
         const inpageAdBtn = document.getElementById('inpageAdBtn');
+        const wheelBalanceEl = document.getElementById('wheelBalance');
+        const wheelCostEl = document.getElementById('wheelCost');
+        const spinBtn = document.getElementById('spinBtn');
+        const watchAdSpinBtn = document.getElementById('watchAdSpinBtn');
+        const wheelResultEl = document.getElementById('wheelResult');
         
         updateUI();
         
@@ -596,14 +654,15 @@
             totalPointsEl.textContent = totalPoints;
             todayCountEl.textContent = todayAds;
             streakCountEl.textContent = streak;
-            invitesCountEl.textContent = Math.floor(Math.random() * 5); // عداد وهمي للدعوات
+            invitesCountEl.textContent = Math.floor(Math.random() * 5);
+            if (wheelBalanceEl) wheelBalanceEl.textContent = totalPoints;
+            localStorage.setItem('totalPoints', totalPoints.toString());
+            localStorage.setItem('todayAds', todayAds.toString());
         }
         
-        // =========== عجلة الحظ ===========
+        // =========== عجلة الحظ المحسّنة ===========
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
-        const spinBtn = document.getElementById('spinBtn');
-        const wheelResult = document.getElementById('wheelResult');
         
         const segments = [
             { color: '#FF6B6B', label: '10', value: 10 },
@@ -616,6 +675,7 @@
         
         function drawWheel() {
             const angleStep = (Math.PI * 2) / segments.length;
+            ctx.clearRect(0, 0, 280, 280);
             segments.forEach((seg, index) => {
                 const startAngle = index * angleStep;
                 const endAngle = startAngle + angleStep;
@@ -643,18 +703,33 @@
         let currentRotation = 0;
         
         function spinWheel() {
+            if (isSpinning) return;
+            
             if (totalPoints < 50) {
                 alert('❌ رصيدك غير كافٍ! تحتاج 50 نقطة للعب');
                 return;
             }
             
+            startSpin(false);
+        }
+        
+        function spinWithAd() {
             if (isSpinning) return;
+            pendingSpinWithAd = true;
+            startAd('video'); // نبدأ إعلان فيديو
+        }
+        
+        function startSpin(isFree) {
+            if (isSpinning) return;
+            
+            if (!isFree) {
+                totalPoints -= 50;
+                updateUI();
+            }
             
             isSpinning = true;
             spinBtn.disabled = true;
-            
-            totalPoints -= 50;
-            updateUI();
+            watchAdSpinBtn.disabled = true;
             
             const spinAngle = Math.random() * 2000 + 2000;
             currentRotation += spinAngle;
@@ -664,6 +739,7 @@
             setTimeout(() => {
                 isSpinning = false;
                 spinBtn.disabled = false;
+                watchAdSpinBtn.disabled = false;
                 
                 const finalAngle = currentRotation % 360;
                 const segmentIndex = Math.floor((360 - finalAngle) / (360 / segments.length)) % segments.length;
@@ -672,8 +748,9 @@
                 totalPoints += prize;
                 updateUI();
                 
-                wheelResult.classList.remove('hidden');
-                wheelResult.innerHTML = `🎉 حصلت على ${prize} نقطة!`;
+                wheelResultEl.classList.remove('hidden');
+                wheelResultEl.innerHTML = `🎉 حصلت على ${prize} نقطة!`;
+                setTimeout(() => wheelResultEl.classList.add('hidden'), 3000);
                 
                 localStorage.setItem('totalPoints', totalPoints.toString());
             }, 4000);
@@ -686,7 +763,7 @@
                 return;
             }
             
-            if (todayAds >= 400) {
+            if (todayAds >= 400 && !pendingSpinWithAd) {
                 alert('❌ لقد استنفدت حد الإعلانات اليومي (400 إعلان)');
                 return;
             }
@@ -749,17 +826,25 @@
                 return;
             }
             
+            if (pendingSpinWithAd) {
+                // إذا كان الإعلان بغرض لفة مجانية بالعجلة
+                pendingSpinWithAd = false;
+                claimBtn.classList.add('hidden');
+                statusEl.innerHTML = '✅ شكراً لمشاهدتك الإعلان! العجلة جاهزة للعب مجاناً';
+                navigateTo('wheel');
+                setTimeout(() => startSpin(true), 1000);
+                return;
+            }
+            
+            // إعلان عادي
             todayAds++;
             totalPoints++;
-            localStorage.setItem('todayAds', todayAds.toString());
-            localStorage.setItem('totalPoints', totalPoints.toString());
             updateUI();
             
             claimBtn.classList.add('hidden');
             statusEl.innerHTML = '✅ تم إضافة نقطة! شكراً لمشاهدتك الإعلان';
             
             adWatched = false;
-            currentAdType = null;
             videoAdBtn.disabled = false;
             inpageAdBtn.disabled = false;
         }
@@ -768,8 +853,10 @@
             videoAdBtn.disabled = false;
             inpageAdBtn.disabled = false;
             countdownActive = false;
+            pendingSpinWithAd = false;
         }
         
+        // منع الغش
         window.addEventListener('load', () => {
             claimBtn?.addEventListener('click', (e) => {
                 if (!adWatched) {
