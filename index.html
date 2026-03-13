@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مشاهدة إعلان - بوت الربح</title>
     
-    <!-- 1. مكتبة OnClickA (Video Rewarded) -->
-    <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
+    <!-- 1. مكتبة OnClickA (Rewarded Post) -->
+    <script src="https://js.onclckvd.com/tma/tma.js"></script>
     
     <!-- 2. مكتبة TADS (احتياطي - اختياري) -->
     <script src="https://w.tads.me/widget.js"></script>
@@ -81,7 +81,7 @@
         
         <!-- زر مشاهدة الإعلان من OnClickA -->
         <button class="watch-btn" onclick="playOnClickAAd()">
-            ▶️ شاهد إعلان فيديو
+            ▶️ شاهد إعلان
         </button>
         
         <!-- حاوية لعرض إعلانات TADS (احتياطي) -->
@@ -93,14 +93,14 @@
     </div>
     
     <script>
-        // =========== OnClickA Video Ad ===========
+        // =========== OnClickA Rewarded Post Ad ===========
         let onClickAShow = null;
         
-        // تهيئة محرك الإعلانات OnClickA مع Spot ID 431049
-        window.initCdTma?.({ id: '431049' })
+        // تهيئة محرك الإعلانات OnClickA مع Spot ID 431049 (لـ Rewarded Post)
+        window.initTma?.({ id: '431049' })
             .then(show => {
                 onClickAShow = show;
-                console.log('✅ OnClickA ad initialized');
+                console.log('✅ OnClickA Rewarded Post initialized');
             })
             .catch(e => console.log('❌ OnClickA init error:', e));
         
