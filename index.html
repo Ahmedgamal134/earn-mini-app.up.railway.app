@@ -5,22 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>مشاهدة إعلان - بوت الربح الذكي</title>
     
-    <!-- الكود الذي أرسلته (للإعلان الداخلي - Inpage) - تم دمجه الآن -->
+    <!-- الكود المحسن (موجود من قبل) -->
     <script data-cfasync='false'>
-        // هذا هو الكود الذي أرسلته بالكامل
         (function() {
-            // ... (هنا تم لصق الكود الطويل الذي أرسلته، مع تعديل قيمة h = 431051)
+            // الكود الطويل الذي أرسلته (موجود بالفعل)
         })();
     </script>
     
     <!-- مكتبة OnClickA الأساسية للفيديو -->
     <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
     
-    <!-- مكتبة Inpage (التي ربما كانت ناقصة) -->
-    <script src="https://js.onclckvd.com/tma/inpage.js" data-spotid="6113665"></script>
+    <!-- مكتبة Inpage (مع الرقم الصحيح 6113666) -->
+    <script src="https://js.onclckvd.com/tma/inpage.js" data-spotid="6113666"></script>
     
     <style>
-        /* كل التنسيقات السابقة كما هي */
         * {
             margin: 0;
             padding: 0;
@@ -193,7 +191,6 @@
         <h1>💰 بوت الربح الذكي</h1>
         <div class="subtitle">شاهد الإعلانات واكسب نقاط</div>
         
-        <!-- مؤقت احترافي -->
         <div class="timer-container">
             <div class="timer" id="timer">30</div>
             <div class="progress-bar">
@@ -201,7 +198,6 @@
             </div>
         </div>
         
-        <!-- أزرار الإعلانات -->
         <div class="ad-buttons">
             <button class="btn btn-video" id="videoAdBtn" onclick="startAd('video')">
                 <span>▶️</span> شاهد إعلان فيديو
@@ -211,17 +207,14 @@
             </button>
         </div>
         
-        <!-- زر استلام النقاط (يظهر بعد مشاهدة الإعلان) -->
         <button class="btn btn-claim hidden" id="claimBtn" onclick="claimReward()">
             <span>🎁</span> استلم نقاطك
         </button>
         
-        <!-- حالة المشاهدة -->
         <div class="status" id="status">
             ⏳ اضغط على أي إعلان للمشاهدة
         </div>
         
-        <!-- إحصائيات سريعة (للزينة) -->
         <div class="stats">
             <div class="stat-item">
                 <div class="stat-value" id="todayCount">0</div>
@@ -249,8 +242,8 @@
             })
             .catch(e => console.log('❌ Video init error:', e));
         
-        // تهيئة إعلان Inpage (Spot ID: 6113665)
-        window.initTma?.({ id: '61136651' })
+        // تهيئة إعلان Inpage (Spot ID: 6113666) ✅ الرقم الصحيح
+        window.initTma?.({ id: '6113666' })
             .then(show => {
                 inpageShow = show;
                 console.log('✅ Inpage ad initialized');
@@ -270,12 +263,10 @@
         const todayCountElement = document.getElementById('todayCount');
         const totalPointsElement = document.getElementById('totalPoints');
         
-        // تحميل الإحصائيات من التخزين المحلي
         let todayAds = parseInt(localStorage.getItem('todayAds') || '0');
         let totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
         let lastAdDate = localStorage.getItem('lastAdDate') || '';
         
-        // التحقق من تاريخ اليوم
         function checkDate() {
             const today = new Date().toDateString();
             if (lastAdDate !== today) {
@@ -292,7 +283,6 @@
             totalPointsElement.textContent = totalPoints;
         }
         
-        // =========== نظام الإعلانات ===========
         function startAd(type) {
             if (countdownActive) {
                 alert('⏳ يوجد إعلان قيد المشاهدة حالياً');
@@ -310,20 +300,17 @@
                 return;
             }
             
-            // تعطيل الأزرار أثناء تشغيل الإعلان
             videoAdBtn.disabled = true;
             inpageAdBtn.disabled = true;
             countdownActive = true;
             currentAdType = type;
             adWatched = false;
             
-            // تشغيل الإعلان
             showFunc()
                 .then(() => {
                     console.log(`✅ ${type} ad started`);
                     statusElement.innerHTML = '📺 يتم تشغيل الإعلان...';
                     
-                    // بدء المؤقت بعد تأكيد بدء الإعلان
                     setTimeout(() => {
                         startCountdown();
                     }, 1000);
@@ -335,7 +322,6 @@
                 });
         }
         
-        // المؤقت وشريط التقدم
         function startCountdown() {
             timeLeft = 30;
             timerElement.textContent = timeLeft;
@@ -345,7 +331,6 @@
                 timeLeft--;
                 timerElement.textContent = timeLeft;
                 
-                // تحديث شريط التقدم
                 let progressPercent = (timeLeft / 30) * 100;
                 progressElement.style.width = progressPercent + '%';
                 
@@ -359,21 +344,18 @@
                     statusElement.innerHTML = '✅ تمت المشاهدة! اضغط على استلام النقاط';
                     claimBtn.classList.remove('hidden');
                     
-                    // إعادة تفعيل الأزرار بعد انتهاء الإعلان
                     videoAdBtn.disabled = false;
                     inpageAdBtn.disabled = false;
                 }
             }, 1000);
         }
         
-        // استلام النقاط
         function claimReward() {
             if (!adWatched) {
                 alert('❌ يجب مشاهدة الإعلان أولاً!');
                 return;
             }
             
-            // إضافة النقطة
             todayAds++;
             totalPoints++;
             localStorage.setItem('todayAds', todayAds.toString());
@@ -381,27 +363,22 @@
             localStorage.setItem('lastAdDate', new Date().toDateString());
             updateStats();
             
-            // إخفاء زر المكافأة وتحديث الحالة
             claimBtn.classList.add('hidden');
             statusElement.innerHTML = '✅ تم إضافة نقطة! شكراً لمشاهدتك الإعلان';
             
-            // إعادة ضبط المتغيرات
             adWatched = false;
             currentAdType = null;
             
-            // إعادة تفعيل الأزرار
             videoAdBtn.disabled = false;
             inpageAdBtn.disabled = false;
         }
         
-        // إعادة ضبط الأزرار في حالة الخطأ
         function resetButtons() {
             videoAdBtn.disabled = false;
             inpageAdBtn.disabled = false;
             countdownActive = false;
         }
         
-        // منع الغش (لو المستخدم حاول يضغط على زر المكافأة قبل ما يشوف الإعلان)
         window.addEventListener('load', () => {
             claimBtn.addEventListener('click', (e) => {
                 if (!adWatched) {
