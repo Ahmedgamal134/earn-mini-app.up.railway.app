@@ -3,23 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مشاهدة إعلان - بوت الربح الذكي</title>
+    <title>بوت الربح الذكي - التطبيق المصغر</title>
     
-    <!-- الكود الخاص بإعلان Inpage (الرقم 431051) ✅ تمت إضافته -->
-    <script data-cfasync='false'>
-        // هذا هو الكود الذي أرسلته (مع تعديل قيمة h إلى 431051)
-        (function() {
-            var Xj = ['addEventListener','onload','charAt','509117wxBMdt','.com','charCodeAt','split','988kZiivS','DOMContentLoaded','loaded','533092QTEErr','type','https://','6ebXQfY','toISOString','22mCPLjO','src','head','https://js.wpadmngr.com/static/adManager.js','setAttribute','per','length','.js','.m.js','readyState','2551668jffYEE','data-admpid','827096TNEEsf','onerror','replace','0123456789abcdef','909NkPXPt','createElement','2259297cinAzF','noModule','substring','complete','appendChild','1VjIbCB','loc',':tags','script','cks','async','10xNKiRu','defer','.l.js','469955xpTljk','ksu'];
-            // تم تعديل قيمة h إلى 431051 (وهو الرقم الخاص بإعلان Inpage)
-            var h = 431051;
-            // باقي الكود كما هو...
-        })();
-    </script>
-    
-    <!-- مكتبة OnClickA الأساسية للفيديو -->
+    <!-- مكتبة OnClickA للإعلانات -->
     <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
-    
-    <!-- مكتبة Inpage (مع الرقم الصحيح 6113666) -->
     <script src="https://js.onclckvd.com/tma/inpage.js" data-spotid="6113666"></script>
     
     <style>
@@ -27,85 +14,222 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(145deg, #0f0c29, #302b63, #24243e);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 16px;
             color: white;
         }
         
-        .container {
+        /* شريط التنقل السفلي */
+        .navbar {
+            position: fixed;
+            bottom: 0;
             width: 100%;
-            max-width: 480px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(20, 20, 40, 0.95);
             backdrop-filter: blur(10px);
-            border-radius: 32px;
-            padding: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
         }
         
-        h1 {
-            font-size: 28px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #ffd700, #ffa500);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .subtitle {
-            text-align: center;
-            color: rgba(255,255,255,0.9);
-            font-size: 16px;
-            margin-bottom: 24px;
-        }
-        
-        .timer-container {
-            background: rgba(0, 0, 0, 0.3);
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 4px 12px;
             border-radius: 20px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: center;
         }
         
-        .timer {
-            font-size: 72px;
-            font-weight: 800;
+        .nav-item.active {
             color: #ffd700;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-            line-height: 1;
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .nav-item i {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        
+        /* المحتوى الرئيسي */
+        .content {
+            padding: 20px 16px 80px 16px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        
+        /* بطاقة الرصيد */
+        .balance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .balance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .balance-title {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .balance-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ffd700;
+        }
+        
+        .balance-label {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-box {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffd700;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        /* شبكة الأقسام */
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .section-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .section-card:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .section-icon {
+            font-size: 32px;
             margin-bottom: 12px;
         }
         
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            overflow: hidden;
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
         }
         
-        .progress-fill {
+        .section-subtitle {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        /* صفحة عجلة الحظ */
+        .wheel-page {
+            text-align: center;
+        }
+        
+        .wheel-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 30px auto;
+        }
+        
+        canvas {
+            width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, #ffd700, #ffa500);
-            width: 100%;
-            transition: width 1s linear;
+            border-radius: 50%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            transition: transform 4s cubic-bezier(0.25, 0.1, 0.15, 1);
         }
         
+        .spin-btn {
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            border: none;
+            color: #333;
+            font-weight: 700;
+            font-size: 20px;
+            padding: 16px 32px;
+            border-radius: 50px;
+            margin: 20px 0;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .spin-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 30px solid #ffd700;
+            z-index: 10;
+        }
+        
+        .prize-message {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 16px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        /* صفحة الإعلانات */
         .ad-buttons {
             display: flex;
             flex-direction: column;
             gap: 12px;
-            margin: 24px 0;
+            margin: 20px 0;
         }
         
         .btn {
@@ -125,14 +249,9 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         
-        .btn:active {
-            transform: scale(0.97);
-        }
-        
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-            transform: none;
         }
         
         .btn-video {
@@ -144,89 +263,257 @@
             color: white;
         }
         
-        .btn-claim {
-            background: linear-gradient(135deg, #4caf50, #45a049);
-            color: white;
-            margin-top: 16px;
-        }
-        
-        .status {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 16px;
-            margin-top: 24px;
-            text-align: center;
-            font-size: 16px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            font-size: 14px;
-            color: rgba(255,255,255,0.7);
-        }
-        
-        .stat-item {
+        .timer-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
             text-align: center;
         }
         
-        .stat-value {
-            font-size: 24px;
+        .timer {
+            font-size: 48px;
             font-weight: 700;
             color: #ffd700;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ffa500);
+            width: 100%;
+            transition: width 1s linear;
         }
         
         .hidden {
             display: none;
         }
         
-        .reward-message {
-            color: #4caf50;
-            font-weight: 600;
+        /* صفحة الإعدادات */
+        .settings-list {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 16px;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .toggle {
+            width: 50px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .toggle.active {
+            background: #4caf50;
+        }
+        
+        .toggle::after {
+            content: '';
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: 0.3s;
+        }
+        
+        .toggle.active::after {
+            left: 24px;
+        }
+        
+        /* مخفي */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>💰 بوت الربح الذكي</h1>
-        <div class="subtitle">شاهد الإعلانات واكسب نقاط</div>
-        
-        <div class="timer-container">
-            <div class="timer" id="timer">30</div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress" style="width: 100%"></div>
+    <!-- شريط التنقل السفلي -->
+    <div class="navbar">
+        <div class="nav-item active" data-page="home">
+            <i>🏠</i>
+            <span>الرئيسية</span>
+        </div>
+        <div class="nav-item" data-page="wheel">
+            <i>🎡</i>
+            <span>العجلة</span>
+        </div>
+        <div class="nav-item" data-page="ads">
+            <i>📺</i>
+            <span>إعلانات</span>
+        </div>
+        <div class="nav-item" data-page="profile">
+            <i>👤</i>
+            <span>حسابي</span>
+        </div>
+    </div>
+    
+    <div class="content">
+        <!-- الصفحة الرئيسية -->
+        <div id="homePage" class="page active">
+            <div class="balance-card">
+                <div class="balance-header">
+                    <span class="balance-title">رصيدك الحالي</span>
+                    <span class="balance-label">💰 نقاط</span>
+                </div>
+                <div class="balance-amount" id="totalPoints">0</div>
+                
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="stat-value" id="todayCount">0</div>
+                        <div class="stat-label">إعلانات اليوم</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="streakCount">0</div>
+                        <div class="stat-label">أيام متتالية</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="invitesCount">0</div>
+                        <div class="stat-label">دعوات</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-grid">
+                <div class="section-card" onclick="navigateTo('ads')">
+                    <div class="section-icon">📺</div>
+                    <div class="section-title">مشاهدة إعلان</div>
+                    <div class="section-subtitle">اكسب نقاط</div>
+                </div>
+                <div class="section-card" onclick="navigateTo('wheel')">
+                    <div class="section-icon">🎡</div>
+                    <div class="section-title">عجلة الحظ</div>
+                    <div class="section-subtitle">50 نقطة للعب</div>
+                </div>
+                <div class="section-card">
+                    <div class="section-icon">✅</div>
+                    <div class="section-title">تسجيل يومي</div>
+                    <div class="section-subtitle">+5 نقاط</div>
+                </div>
+                <div class="section-card">
+                    <div class="section-icon">👥</div>
+                    <div class="section-title">دعوة صديق</div>
+                    <div class="section-subtitle">+80 نقطة</div>
+                </div>
             </div>
         </div>
         
-        <div class="ad-buttons">
-            <button class="btn btn-video" id="videoAdBtn" onclick="startAd('video')">
-                <span>▶️</span> شاهد إعلان فيديو
-            </button>
-            <button class="btn btn-inpage" id="inpageAdBtn" onclick="startAd('inpage')">
-                <span>📄</span> شاهد إعلان
-            </button>
-        </div>
-        
-        <button class="btn btn-claim hidden" id="claimBtn" onclick="claimReward()">
-            <span>🎁</span> استلم نقاطك
-        </button>
-        
-        <div class="status" id="status">
-            ⏳ اضغط على أي إعلان للمشاهدة
-        </div>
-        
-        <div class="stats">
-            <div class="stat-item">
-                <div class="stat-value" id="todayCount">0</div>
-                <div>إعلانات اليوم</div>
+        <!-- صفحة عجلة الحظ -->
+        <div id="wheelPage" class="page">
+            <h2 style="text-align: center; margin-bottom: 20px;">🎡 عجلة الحظ</h2>
+            
+            <div class="wheel-container">
+                <canvas id="wheelCanvas" width="280" height="280"></canvas>
+                <div class="pointer"></div>
             </div>
-            <div class="stat-item">
-                <div class="stat-value" id="totalPoints">0</div>
-                <div>نقاطك</div>
+            
+            <div style="text-align: center;">
+                <button class="spin-btn" id="spinBtn" onclick="spinWheel()">🎲 ابدأ الدوران</button>
+            </div>
+            
+            <div id="wheelResult" class="prize-message hidden">
+                🎉 حصلت على 50 نقطة!
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>🎁 الاشتراك مرة واحدة:</span>
+                    <span style="color: #ffd700;">50 نقطة</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>🎁 الاشتراك الشهري:</span>
+                    <span style="color: #ffd700;">500 نقطة</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- صفحة الإعلانات (معدلة مع الحاوية) -->
+        <div id="adsPage" class="page">
+            <h2 style="text-align: center; margin-bottom: 20px;">📺 مشاهدة إعلانات</h2>
+            
+            <div class="timer-container">
+                <div class="timer" id="timer">30</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress" style="width: 100%"></div>
+                </div>
+            </div>
+            
+            <div class="ad-buttons">
+                <button class="btn btn-video" id="videoAdBtn" onclick="startAd('video')">
+                    <span>▶️</span> شاهد إعلان فيديو
+                </button>
+                <button class="btn btn-inpage" id="inpageAdBtn" onclick="startAd('inpage')">
+                    <span>📄</span> شاهد إعلان
+                </button>
+            </div>
+            
+            <button class="btn btn-claim hidden" id="claimBtn" onclick="claimReward()">
+                <span>🎁</span> استلم نقاطك
+            </button>
+            
+            <div class="status" id="status" style="text-align: center; margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 16px;">
+                ⏳ اضغط على أي إعلان للمشاهدة
+            </div>
+            
+            <!-- ✅ الحاوية المطلوبة لإعلانات Inpage (تم إضافتها هنا) -->
+            <div data-nat="6113666"></div>
+        </div>
+        
+        <!-- صفحة الحساب -->
+        <div id="profilePage" class="page">
+            <h2 style="text-align: center; margin-bottom: 20px;">👤 حسابي</h2>
+            
+            <div class="settings-list">
+                <div class="setting-item">
+                    <span>🔔 إشعارات</span>
+                    <div class="toggle" onclick="this.classList.toggle('active')"></div>
+                </div>
+                <div class="setting-item">
+                    <span>🌙 الوضع الليلي</span>
+                    <div class="toggle" onclick="this.classList.toggle('active')"></div>
+                </div>
+                <div class="setting-item">
+                    <span>📞 اللغة</span>
+                    <span>العربية</span>
+                </div>
+                <div class="setting-item">
+                    <span>📊 إجمالي الأرباح</span>
+                    <span id="totalEarned">0 نقطة</span>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="btn" style="background: #f44336; color: white;" onclick="logout()">
+                    🚪 تسجيل الخروج
+                </button>
             </div>
         </div>
     </div>
@@ -237,6 +524,9 @@
         let inpageShow = null;
         let currentAdType = null;
         let adWatched = false;
+        let timerInterval = null;
+        let timeLeft = 30;
+        let countdownActive = false;
         
         // تهيئة إعلان الفيديو (Spot ID: 6113667)
         window.initCdTma?.({ id: '6113667' })
@@ -256,47 +546,140 @@
                     })
                     .catch(e => console.log('❌ Inpage init error:', e));
             } else {
-                console.log('⏳ Waiting for TMA library...');
                 setTimeout(initInpage, 500);
             }
         }
-        
-        // بدء تهيئة Inpage
         initInpage();
         
-        // =========== متغيرات المؤقت ===========
-        let timeLeft = 30;
-        let timerInterval = null;
-        let countdownActive = false;
-        const timerElement = document.getElementById('timer');
-        const progressElement = document.getElementById('progress');
-        const statusElement = document.getElementById('status');
+        // =========== التنقل بين الصفحات ===========
+        const pages = {
+            home: document.getElementById('homePage'),
+            wheel: document.getElementById('wheelPage'),
+            ads: document.getElementById('adsPage'),
+            profile: document.getElementById('profilePage')
+        };
+        
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+                navigateTo(item.dataset.page);
+            });
+        });
+        
+        function navigateTo(pageName) {
+            Object.values(pages).forEach(page => page.classList.remove('active'));
+            pages[pageName].classList.add('active');
+        }
+        
+        // =========== بيانات المستخدم ===========
+        let todayAds = parseInt(localStorage.getItem('todayAds') || '0');
+        let totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
+        let streak = parseInt(localStorage.getItem('streak') || '0');
+        let lastCheckin = localStorage.getItem('lastCheckin') || '';
+        
+        // عناصر HTML
+        const totalPointsEl = document.getElementById('totalPoints');
+        const todayCountEl = document.getElementById('todayCount');
+        const streakCountEl = document.getElementById('streakCount');
+        const invitesCountEl = document.getElementById('invitesCount');
+        const timerEl = document.getElementById('timer');
+        const progressEl = document.getElementById('progress');
+        const statusEl = document.getElementById('status');
         const claimBtn = document.getElementById('claimBtn');
         const videoAdBtn = document.getElementById('videoAdBtn');
         const inpageAdBtn = document.getElementById('inpageAdBtn');
-        const todayCountElement = document.getElementById('todayCount');
-        const totalPointsElement = document.getElementById('totalPoints');
         
-        let todayAds = parseInt(localStorage.getItem('todayAds') || '0');
-        let totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
-        let lastAdDate = localStorage.getItem('lastAdDate') || '';
+        updateUI();
         
-        function checkDate() {
-            const today = new Date().toDateString();
-            if (lastAdDate !== today) {
-                todayAds = 0;
-                localStorage.setItem('todayAds', '0');
-                localStorage.setItem('lastAdDate', today);
+        function updateUI() {
+            totalPointsEl.textContent = totalPoints;
+            todayCountEl.textContent = todayAds;
+            streakCountEl.textContent = streak;
+            invitesCountEl.textContent = Math.floor(Math.random() * 5); // عداد وهمي للدعوات
+        }
+        
+        // =========== عجلة الحظ ===========
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spinBtn');
+        const wheelResult = document.getElementById('wheelResult');
+        
+        const segments = [
+            { color: '#FF6B6B', label: '10', value: 10 },
+            { color: '#4ECDC4', label: '20', value: 20 },
+            { color: '#45B7D1', label: '50', value: 50 },
+            { color: '#96CEB4', label: '100', value: 100 },
+            { color: '#FFE194', label: '5', value: 5 },
+            { color: '#B8A9C9', label: '200', value: 200 }
+        ];
+        
+        function drawWheel() {
+            const angleStep = (Math.PI * 2) / segments.length;
+            segments.forEach((seg, index) => {
+                const startAngle = index * angleStep;
+                const endAngle = startAngle + angleStep;
+                
+                ctx.beginPath();
+                ctx.fillStyle = seg.color;
+                ctx.moveTo(140, 140);
+                ctx.arc(140, 140, 140, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.save();
+                ctx.translate(140, 140);
+                ctx.rotate(startAngle + angleStep / 2);
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText(seg.label, 70, 0);
+                ctx.restore();
+            });
+        }
+        drawWheel();
+        
+        let isSpinning = false;
+        let currentRotation = 0;
+        
+        function spinWheel() {
+            if (totalPoints < 50) {
+                alert('❌ رصيدك غير كافٍ! تحتاج 50 نقطة للعب');
+                return;
             }
+            
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            spinBtn.disabled = true;
+            
+            totalPoints -= 50;
+            updateUI();
+            
+            const spinAngle = Math.random() * 2000 + 2000;
+            currentRotation += spinAngle;
+            
+            canvas.style.transform = `rotate(${currentRotation}deg)`;
+            
+            setTimeout(() => {
+                isSpinning = false;
+                spinBtn.disabled = false;
+                
+                const finalAngle = currentRotation % 360;
+                const segmentIndex = Math.floor((360 - finalAngle) / (360 / segments.length)) % segments.length;
+                const prize = segments[segmentIndex].value;
+                
+                totalPoints += prize;
+                updateUI();
+                
+                wheelResult.classList.remove('hidden');
+                wheelResult.innerHTML = `🎉 حصلت على ${prize} نقطة!`;
+                
+                localStorage.setItem('totalPoints', totalPoints.toString());
+            }, 4000);
         }
-        checkDate();
-        updateStats();
         
-        function updateStats() {
-            todayCountElement.textContent = todayAds;
-            totalPointsElement.textContent = totalPoints;
-        }
-        
+        // =========== نظام الإعلانات ===========
         function startAd(type) {
             if (countdownActive) {
                 alert('⏳ يوجد إعلان قيد المشاهدة حالياً');
@@ -322,40 +705,36 @@
             
             showFunc()
                 .then(() => {
-                    console.log(`✅ ${type} ad started`);
-                    statusElement.innerHTML = '📺 يتم تشغيل الإعلان...';
-                    
-                    setTimeout(() => {
-                        startCountdown();
-                    }, 1000);
+                    statusEl.innerHTML = '📺 يتم تشغيل الإعلان...';
+                    startCountdown();
                 })
                 .catch(e => {
                     console.log(`❌ ${type} ad error:`, e);
-                    statusElement.innerHTML = '❌ حدث خطأ في تشغيل الإعلان';
+                    statusEl.innerHTML = '❌ حدث خطأ في تشغيل الإعلان';
                     resetButtons();
                 });
         }
         
         function startCountdown() {
             timeLeft = 30;
-            timerElement.textContent = timeLeft;
-            progressElement.style.width = '100%';
+            timerEl.textContent = timeLeft;
+            progressEl.style.width = '100%';
             
             timerInterval = setInterval(() => {
                 timeLeft--;
-                timerElement.textContent = timeLeft;
+                timerEl.textContent = timeLeft;
                 
                 let progressPercent = (timeLeft / 30) * 100;
-                progressElement.style.width = progressPercent + '%';
+                progressEl.style.width = progressPercent + '%';
                 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    timerElement.textContent = '0';
-                    progressElement.style.width = '0%';
+                    timerEl.textContent = '0';
+                    progressEl.style.width = '0%';
                     countdownActive = false;
                     adWatched = true;
                     
-                    statusElement.innerHTML = '✅ تمت المشاهدة! اضغط على استلام النقاط';
+                    statusEl.innerHTML = '✅ تمت المشاهدة! اضغط على استلام النقاط';
                     claimBtn.classList.remove('hidden');
                     
                     videoAdBtn.disabled = false;
@@ -374,15 +753,13 @@
             totalPoints++;
             localStorage.setItem('todayAds', todayAds.toString());
             localStorage.setItem('totalPoints', totalPoints.toString());
-            localStorage.setItem('lastAdDate', new Date().toDateString());
-            updateStats();
+            updateUI();
             
             claimBtn.classList.add('hidden');
-            statusElement.innerHTML = '✅ تم إضافة نقطة! شكراً لمشاهدتك الإعلان';
+            statusEl.innerHTML = '✅ تم إضافة نقطة! شكراً لمشاهدتك الإعلان';
             
             adWatched = false;
             currentAdType = null;
-            
             videoAdBtn.disabled = false;
             inpageAdBtn.disabled = false;
         }
@@ -394,13 +771,19 @@
         }
         
         window.addEventListener('load', () => {
-            claimBtn.addEventListener('click', (e) => {
+            claimBtn?.addEventListener('click', (e) => {
                 if (!adWatched) {
                     e.preventDefault();
                     alert('❌ لازم تشوف الإعلان الأول!');
                 }
             });
         });
+        
+        function logout() {
+            if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+                window.location.reload();
+            }
+        }
     </script>
 </body>
 </html>
