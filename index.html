@@ -758,38 +758,59 @@
         
         // =========== نظام الإعلانات ===========
         function startAd(type) {
-            if (countdownActive) {
-                alert('⏳ يوجد إعلان قيد المشاهدة حالياً');
-                return;
-            }
-            
-            if (todayAds >= 400 && !pendingSpinWithAd) {
-                alert('❌ لقد استنفدت حد الإعلانات اليومي (400 إعلان)');
-                return;
-            }
-            
-            let showFunc = type === 'video' ? videoShow : inpageShow;
-            if (!showFunc) {
+    if (countdownActive) {
+        alert('⏳ يوجد إعلان قيد المشاهدة حالياً');
+        return;
+    }
+    
+    if (todayAds >= 400 && !pendingSpinWithAd) {
+        alert('❌ لقد استنفدت حد الإعلانات اليومي (400 إعلان)');
+        return;
+    }
+    
+    let showFunc = type === 'video' ? videoShow : inpageShow;
+    
+    // لو الإعلان لسه مهيأش، نحاول ننتظر شوية
+    if (!showFunc) {
+        alert('جاري تحميل الإعلان، انتظر لحظة...');
+        
+        // نحاول نعيد تهيئة الإعلان
+        if (type === 'inpage') {
+            initInpage(); // نحاول نعيد التهيئة
+        }
+        
+        // نرجع بعد ثانية ونحاول تاني
+        setTimeout(() => {
+            showFunc = type === 'video' ? videoShow : inpageShow;
+            if (showFunc) {
+                playAd(showFunc, type);
+            } else {
                 alert('الإعلان لم يتم تحميله بعد، حاول مرة أخرى');
-                return;
             }
-            
-            videoAdBtn.disabled = true;
-            inpageAdBtn.disabled = true;
-            countdownActive = true;
-            currentAdType = type;
-            adWatched = false;
-            
-            showFunc()
-                .then(() => {
-                    statusEl.innerHTML = '📺 يتم تشغيل الإعلان...';
-                    startCountdown();
-                })
-                .catch(e => {
-                    console.log(`❌ ${type} ad error:`, e);
-                    statusEl.innerHTML = '❌ حدث خطأ في تشغيل الإعلان';
-                    resetButtons();
-                });
+        }, 1000);
+        return;
+    }
+    
+    playAd(showFunc, type);
+}
+
+function playAd(showFunc, type) {
+    videoAdBtn.disabled = true;
+    inpageAdBtn.disabled = true;
+    countdownActive = true;
+    currentAdType = type;
+    adWatched = false;
+    
+    showFunc()
+        .then(() => {
+            statusEl.innerHTML = '📺 يتم تشغيل الإعلان...';
+            startCountdown();
+        })
+        .catch(e => {
+            console.log(`❌ ${type} ad error:`, e);
+            statusEl.innerHTML = '❌ حدث خطأ في تشغيل الإعلان';
+            resetButtons();
+        });
         }
         
         function startCountdown() {
