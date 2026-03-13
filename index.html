@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مشاهدة إعلان - بوت الربح</title>
     
-    <!-- 1. مكتبة TADS Widget -->
+    <!-- 1. مكتبة OnClickA (Video Rewarded) -->
+    <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
+    
+    <!-- 2. مكتبة TADS (احتياطي - اختياري) -->
     <script src="https://w.tads.me/widget.js"></script>
     
     <style>
@@ -41,12 +44,27 @@
             padding: 20px;
             margin: 20px 0;
         }
-        #tads-container-9544 {
+        .ad-container {
             margin: 20px 0;
             padding: 10px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
-            min-height: 200px; /* ارتفاع مناسب لعرض الإعلان */
+            min-height: 200px;
+        }
+        .watch-btn {
+            background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+            border: none;
+            color: #333;
+            font-weight: bold;
+            font-size: 18px;
+            padding: 15px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 15px 0;
+        }
+        .watch-btn:hover {
+            transform: scale(1.05);
         }
     </style>
 </head>
@@ -61,68 +79,13 @@
         
         <div class="timer" id="timer">15</div>
         
-        <!-- 2. حاوية الإعلان (الرقم 9544 هو Widget ID الخاص بنا) -->
-        <div id="tads-container-9544"></div>
+        <!-- زر مشاهدة الإعلان من OnClickA -->
+        <button class="watch-btn" onclick="playOnClickAAd()">
+            ▶️ شاهد إعلان فيديو
+        </button>
         
-        <!-- 3. كود تهيئة TADS Widget (Text-Graphic Block - TGB) مع ربط المكافأة بالبوت -->
-        <script>
-            // الدوال اللي هتتواصل مع البوت عشان تدي المكافأة
-            const rewardUser = (adId, type) => {
-                console.log(`✅ يجب مكافأة المستخدم. Ad ID: ${adId}, Type: ${type}`);
-                // هنا هنبعت إشارة للبوت (لكن ده محتاج Webhook، هنستخدم المؤقت بداله)
-                // بدل ما نعقدها، هنعتمد على نفس النظام: المستخدم هيرجع للبوت ويضغط على زر استلام.
-            };
-
-            const onAdsNotFound = () => {
-                console.log('⚠️ لا توجد إعلانات متاحة حالياً.');
-                // عرض رسالة للمستخدم
-                const container = document.getElementById('tads-container-9544');
-                if (container) {
-                    container.innerHTML = '<p style="color: #ccc;">لا توجد إعلانات حالياً، حاول لاحقاً.</p>';
-                }
-            };
-
-            // تهيئة الـ widget
-            const initTads = () => {
-                if (typeof window.tads === 'undefined' || typeof window.tads.init !== 'function') {
-                    console.error('❌ مكتبة TADS لم يتم تحميلها بعد.');
-                    return;
-                }
-
-                const adController = window.tads.init({
-                    widgetId: 9544,                 // الرقم بتاعنا
-                    type: 'static',                  // TGB
-                    debug: false,                     // False في مرحلة الإنتاج
-                    onClickReward: (adId) => {        // لما المستخدم يضغط على الإعلان
-                        console.log('👆 User clicked on ad:', adId);
-                        rewardUser(adId, 'click');
-                        // ممكن كمان نخزن في localStorage إنه ضغط
-                        localStorage.setItem('tads_ad_clicked', 'true');
-                    },
-                    onShowReward: (adId) => {         // لو الإعلان ظهر واتشاف (للفول سكرين)
-                        console.log('👀 User watched ad:', adId);
-                        rewardUser(adId, 'view');
-                    },
-                    onAdsNotFound: onAdsNotFound
-                });
-
-                adController.loadAd()
-                    .then(() => {
-                        adController.showAd();
-                    })
-                    .catch((err) => {
-                        console.error('❌ فشل في تحميل الإعلان:', err);
-                        onAdsNotFound();
-                    });
-            };
-
-            // تشغيل الكود بعد تحميل الصفحة
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initTads);
-            } else {
-                initTads();
-            }
-        </script>
+        <!-- حاوية لعرض إعلانات TADS (احتياطي) -->
+        <div id="tads-container-9544" class="ad-container"></div>
         
         <div class="message" id="status">
             شاهد الإعلان وانتظر...
@@ -130,21 +93,92 @@
     </div>
     
     <script>
-        // المؤقت (زي ما هو)
+        // =========== OnClickA Video Ad ===========
+        let onClickAShow = null;
+        
+        // تهيئة محرك الإعلانات OnClickA مع Spot ID 431049
+        window.initCdTma?.({ id: '431049' })
+            .then(show => {
+                onClickAShow = show;
+                console.log('✅ OnClickA ad initialized');
+            })
+            .catch(e => console.log('❌ OnClickA init error:', e));
+        
+        // دالة تشغيل الإعلان عند الضغط على الزر
+        function playOnClickAAd() {
+            if (!onClickAShow) {
+                alert('الإعلان لم يتم تحميله بعد، حاول مرة أخرى');
+                return;
+            }
+            
+            onClickAShow()
+                .then(() => {
+                    console.log('✅ OnClickA ad played');
+                    // هنا المستخدم شاف الإعلان، نبدأ المؤقت
+                    startTimer();
+                })
+                .catch(e => {
+                    console.log('❌ OnClickA ad error:', e);
+                    alert('حدث خطأ في تشغيل الإعلان');
+                });
+        }
+        
+        // =========== TADS Ad (احتياطي) ===========
+        const initTads = () => {
+            if (typeof window.tads === 'undefined' || typeof window.tads.init !== 'function') {
+                return;
+            }
+
+            const adController = window.tads.init({
+                widgetId: 9544,
+                type: 'static',
+                debug: false,
+                onAdsNotFound: () => {
+                    console.log('⚠️ لا توجد إعلانات TADS متاحة');
+                }
+            });
+
+            adController.loadAd()
+                .then(() => adController.showAd())
+                .catch((err) => {
+                    console.log('❌ TADS error:', err);
+                });
+        };
+
+        // تشغيل TADS بعد تحميل الصفحة
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initTads);
+        } else {
+            initTads();
+        }
+        
+        // =========== المؤقت ونظام النقاط ===========
         let timeLeft = 15;
         const timerElement = document.getElementById('timer');
         const statusElement = document.getElementById('status');
+        let timerInterval = null;
         
-        const timer = setInterval(() => {
-            timeLeft--;
+        function startTimer() {
+            // إعادة تعيين المؤقت
+            timeLeft = 15;
+            timerElement.style.display = 'block';
             timerElement.textContent = timeLeft;
+            statusElement.innerHTML = 'شاهد الإعلان وانتظر...';
             
-            if (timeLeft <= 0) {
-                clearInterval(timer);
-                timerElement.style.display = 'none';
-                statusElement.innerHTML = '✅ تمت المشاهدة! يمكنك العودة للبوت لاستلام نقاطك';
-            }
-        }, 1000);
+            // إيقاف أي مؤقت سابق
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerElement.style.display = 'none';
+                    statusElement.innerHTML = '✅ تمت المشاهدة! يمكنك العودة للبوت لاستلام نقاطك';
+                }
+            }, 1000);
+        }
     </script>
 </body>
 </html>
