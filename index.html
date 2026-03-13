@@ -23,7 +23,6 @@
     <script src="https://js.onclckvd.com/tma/inpage.js" data-spotid="6113666"></script>
     
     <style>
-        /* كل التنسيقات السابقة كما هي */
         * {
             margin: 0;
             padding: 0;
@@ -247,13 +246,23 @@
             })
             .catch(e => console.log('❌ Video init error:', e));
         
-        // تهيئة إعلان Inpage (Spot ID: 6113666) ✅ الرقم الصحيح
-        window.initTma?.({ id: '6113666' })
-            .then(show => {
-                inpageShow = show;
-                console.log('✅ Inpage ad initialized');
-            })
-            .catch(e => console.log('❌ Inpage init error:', e));
+        // محاولة تهيئة إعلان Inpage مع التأكد من تحميل المكتبة
+        function initInpage() {
+            if (typeof window.initTma === 'function') {
+                window.initTma({ id: '6113666' })
+                    .then(show => {
+                        inpageShow = show;
+                        console.log('✅ Inpage ad initialized');
+                    })
+                    .catch(e => console.log('❌ Inpage init error:', e));
+            } else {
+                console.log('⏳ Waiting for TMA library...');
+                setTimeout(initInpage, 500);
+            }
+        }
+        
+        // بدء تهيئة Inpage
+        initInpage();
         
         // =========== متغيرات المؤقت ===========
         let timeLeft = 30;
