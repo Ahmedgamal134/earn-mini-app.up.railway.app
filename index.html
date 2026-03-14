@@ -23,7 +23,6 @@
             color: white;
         }
         
-        /* شريط التنقل السفلي */
         .navbar {
             position: fixed;
             bottom: 0;
@@ -59,14 +58,12 @@
             margin-bottom: 4px;
         }
         
-        /* المحتوى الرئيسي */
         .content {
             padding: 20px 16px 80px 16px;
             max-width: 480px;
             margin: 0 auto;
         }
         
-        /* بطاقة الرصيد */
         .balance-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 24px;
@@ -123,7 +120,6 @@
             opacity: 0.7;
         }
         
-        /* شبكة الأقسام */
         .section-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -162,7 +158,6 @@
             opacity: 0.7;
         }
         
-        /* صفحة عجلة الحظ */
         .wheel-page {
             text-align: center;
         }
@@ -254,7 +249,6 @@
             font-weight: 600;
         }
         
-        /* صفحة الإعلانات */
         .ad-buttons {
             display: flex;
             flex-direction: column;
@@ -332,7 +326,6 @@
             display: none;
         }
         
-        /* صفحة الإعدادات */
         .settings-list {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 20px;
@@ -390,7 +383,6 @@
     </style>
 </head>
 <body>
-    <!-- شريط التنقل السفلي -->
     <div class="navbar">
         <div class="nav-item active" data-page="home">
             <i>🏠</i>
@@ -496,12 +488,12 @@
                     <span>🟩 20 نقطة</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span>🟦 50 نقطة</span>
-                    <span>🟨 100 نقطة</span>
+                    <span>🟦 50 نقاط</span>
+                    <span>🟩 100 نقطة</span>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
+                    <span>🟨 5 نقاط</span>
                     <span>🟪 200 نقطة</span>
-                    <span>🟫 5 نقاط</span>
                 </div>
             </div>
         </div>
@@ -518,6 +510,7 @@
             </div>
             
             <div class="ad-buttons">
+                <!-- زر إعلان الفيديو (يستخدم الرقم الجديد 6113781) -->
                 <button class="btn btn-video" id="videoAdBtn" onclick="startAd('video')">
                     <span>▶️</span> شاهد إعلان فيديو
                 </button>
@@ -579,8 +572,8 @@
         let timeLeft = 30;
         let countdownActive = false;
         
-        // تهيئة إعلان الفيديو (Spot ID: 6113667)
-        window.initCdTma?.({ id: '6113667' })
+        // ✅ تهيئة إعلان الفيديو (الرقم الجديد 6113781)
+        window.initCdTma?.({ id: '6113781' })
             .then(show => {
                 videoShow = show;
                 console.log('✅ Video ad initialized');
@@ -621,6 +614,8 @@
         let totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
         let streak = parseInt(localStorage.getItem('streak') || '0');
         let lastCheckin = localStorage.getItem('lastCheckin') || '';
+        let lastInviteTime = 0;
+        const INVITE_COOLDOWN = 3600000; // ساعة
         
         // عناصر HTML
         const totalPointsEl = document.getElementById('totalPoints');
@@ -634,7 +629,6 @@
         const videoAdBtn = document.getElementById('videoAdBtn');
         const inpageAdBtn = document.getElementById('inpageAdBtn');
         const wheelBalanceEl = document.getElementById('wheelBalance');
-        const wheelCostEl = document.getElementById('wheelCost');
         const spinBtn = document.getElementById('spinBtn');
         const watchAdSpinBtn = document.getElementById('watchAdSpinBtn');
         const wheelResultEl = document.getElementById('wheelResult');
@@ -654,7 +648,7 @@
             totalPointsEl.textContent = totalPoints;
             todayCountEl.textContent = todayAds;
             streakCountEl.textContent = streak;
-            invitesCountEl.textContent = Math.floor(Math.random() * 5);
+            invitesCountEl.textContent = 0; // هيتحسب من localStorage بعدين
             if (wheelBalanceEl) wheelBalanceEl.textContent = totalPoints;
             localStorage.setItem('totalPoints', totalPoints.toString());
             localStorage.setItem('todayAds', todayAds.toString());
@@ -677,23 +671,33 @@
             alert('✅ تم تسجيل حضورك! +5 نقاط');
         }
         
-        // =========== دعوة صديق ===========
+        // =========== دعوة صديق (محسّن) ===========
         function inviteFriend() {
+            const now = Date.now();
+            
+            if (now - lastInviteTime < INVITE_COOLDOWN) {
+                alert('⏳ يمكنك دعوة صديق مرة واحدة كل ساعة فقط.');
+                return;
+            }
+            
             const inviteLink = `https://t.me/share/url?url=https://t.me/YourTapEarnBot/Earn_App&text=انضم إلي في بوت الربح الذكي واكسب نقاط!`;
             window.open(inviteLink, '_blank');
             
-            // محاكاة إضافة نقاط (في الواقع هتكون بعد ما الصديق يسجل)
             setTimeout(() => {
-                totalPoints += 80;
-                updateUI();
-                alert('👥 تمت إضافة 80 نقطة! (محاكاة)');
+                if (confirm('هل قمت بدعوة صديق بالفعل؟')) {
+                    lastInviteTime = now;
+                    totalPoints += 80;
+                    updateUI();
+                    alert('👥 تمت إضافة 80 نقطة!');
+                } else {
+                    alert('❌ لم تتم إضافة النقاط.');
+                }
             }, 3000);
         }
         
         // =========== عجلة الحظ ===========
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
-        
         const segments = [
             { color: '#FF6B6B', label: '10', value: 10 },
             { color: '#4ECDC4', label: '20', value: 20 },
@@ -702,6 +706,8 @@
             { color: '#FFE194', label: '5', value: 5 },
             { color: '#B8A9C9', label: '200', value: 200 }
         ];
+        let isSpinning = false;
+        let currentRotation = 0;
         
         function drawWheel() {
             const angleStep = (Math.PI * 2) / segments.length;
@@ -729,18 +735,15 @@
         }
         drawWheel();
         
-        let isSpinning = false;
-        let currentRotation = 0;
-        
         function spinWheel() {
             if (isSpinning) return;
-            
             if (totalPoints < 50) {
                 alert('❌ رصيدك غير كافٍ! تحتاج 50 نقطة للعب');
                 return;
             }
-            
-            startSpin(false);
+            totalPoints -= 50;
+            updateUI();
+            startSpin();
         }
         
         function spinWithAd() {
@@ -748,27 +751,20 @@
             startAd('video');
         }
         
-        function startSpin(isFree) {
-            if (isSpinning) return;
-            
-            if (!isFree) {
-                totalPoints -= 50;
-                updateUI();
-            }
-            
+        function startSpin() {
             isSpinning = true;
-            if (spinBtn) spinBtn.disabled = true;
-            if (watchAdSpinBtn) watchAdSpinBtn.disabled = true;
+            spinBtn.disabled = true;
+            watchAdSpinBtn.disabled = true;
+            wheelResultEl.classList.add('hidden');
             
             const spinAngle = Math.random() * 2000 + 2000;
             currentRotation += spinAngle;
-            
             canvas.style.transform = `rotate(${currentRotation}deg)`;
             
             setTimeout(() => {
                 isSpinning = false;
-                if (spinBtn) spinBtn.disabled = false;
-                if (watchAdSpinBtn) watchAdSpinBtn.disabled = false;
+                spinBtn.disabled = false;
+                watchAdSpinBtn.disabled = false;
                 
                 const finalAngle = currentRotation % 360;
                 const segmentIndex = Math.floor((360 - finalAngle) / (360 / segments.length)) % segments.length;
@@ -880,4 +876,4 @@
         }
     </script>
 </body>
-                        </html>
+                </html>
