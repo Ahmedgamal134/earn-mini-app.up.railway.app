@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>بوت الربح الذكي - التطبيق المصغر</title>
     
-    <!-- مكتبات OnClickA للإعلانات -->
+    <!-- مكتبة OnClickA للفيديو فقط -->
     <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
-    <script src="https://js.onclckvd.com/tma/inpage.js" data-spotid="6113666"></script>
     
     <style>
         * {
@@ -278,13 +277,12 @@
             cursor: not-allowed;
         }
         
-        .btn-video {
+        .btn-video1 {
             background: linear-gradient(135deg, #ffd700, #ffa500);
         }
         
-        .btn-inpage {
-            background: linear-gradient(135deg, #6b8cff, #4a6cf7);
-            color: white;
+        .btn-video2 {
+            background: linear-gradient(135deg, #ffaa00, #ff6600);
         }
         
         .btn-checkin {
@@ -498,7 +496,7 @@
             </div>
         </div>
         
-        <!-- صفحة الإعلانات -->
+        <!-- صفحة الإعلانات (فيديوين فقط) -->
         <div id="adsPage" class="page">
             <h2 style="text-align: center; margin-bottom: 20px;">📺 مشاهدة إعلانات</h2>
             
@@ -510,12 +508,13 @@
             </div>
             
             <div class="ad-buttons">
-                <!-- زر إعلان الفيديو (يستخدم الرقم الجديد 6113781) -->
-                <button class="btn btn-video" id="videoAdBtn" onclick="startAd('video')">
-                    <span>▶️</span> شاهد إعلان فيديو
+                <!-- زر إعلان الفيديو الأول (6113667) -->
+                <button class="btn btn-video1" id="videoAdBtn1" onclick="startAd(1)">
+                    <span>▶️</span> شاهد إعلان فيديو 1
                 </button>
-                <button class="btn btn-inpage" id="inpageAdBtn" onclick="startAd('inpage')">
-                    <span>📄</span> شاهد إعلان Inpage
+                <!-- زر إعلان الفيديو الثاني (6113781) -->
+                <button class="btn btn-video2" id="videoAdBtn2" onclick="startAd(2)">
+                    <span>▶️</span> شاهد إعلان فيديو 2
                 </button>
             </div>
             
@@ -526,9 +525,6 @@
             <div class="status" id="status" style="text-align: center; margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 16px;">
                 ⏳ اضغط على أي إعلان للمشاهدة
             </div>
-            
-            <!-- حاوية إعلانات Inpage -->
-            <div data-nat="6113666"></div>
         </div>
         
         <!-- صفحة الحساب -->
@@ -564,29 +560,29 @@
     
     <script>
         // =========== إعدادات OnClickA ===========
-        let videoShow = null;
-        let inpageShow = null;
-        let currentAdType = null;
+        let videoShow1 = null; // للإعلان 6113667
+        let videoShow2 = null; // للإعلان 6113781
+        let currentAd = null;
         let adWatched = false;
         let timerInterval = null;
         let timeLeft = 30;
         let countdownActive = false;
         
-        // ✅ تهيئة إعلان الفيديو (الرقم الجديد 6113781)
+        // تهيئة إعلان الفيديو الأول (6113667)
+        window.initCdTma?.({ id: '6113667' })
+            .then(show => {
+                videoShow1 = show;
+                console.log('✅ Video ad 1 initialized');
+            })
+            .catch(e => console.log('❌ Video ad 1 init error:', e));
+        
+        // تهيئة إعلان الفيديو الثاني (6113781)
         window.initCdTma?.({ id: '6113781' })
             .then(show => {
-                videoShow = show;
-                console.log('✅ Video ad initialized');
+                videoShow2 = show;
+                console.log('✅ Video ad 2 initialized');
             })
-            .catch(e => console.log('❌ Video init error:', e));
-        
-        // تهيئة إعلان Inpage (Spot ID: 6113666)
-        window.initTma?.({ id: '6113666' })
-            .then(show => {
-                inpageShow = show;
-                console.log('✅ Inpage ad initialized');
-            })
-            .catch(e => console.log('❌ Inpage init error:', e));
+            .catch(e => console.log('❌ Video ad 2 init error:', e));
         
         // =========== التنقل بين الصفحات ===========
         const pages = {
@@ -626,14 +622,13 @@
         const progressEl = document.getElementById('progress');
         const statusEl = document.getElementById('status');
         const claimBtn = document.getElementById('claimBtn');
-        const videoAdBtn = document.getElementById('videoAdBtn');
-        const inpageAdBtn = document.getElementById('inpageAdBtn');
+        const videoAdBtn1 = document.getElementById('videoAdBtn1');
+        const videoAdBtn2 = document.getElementById('videoAdBtn2');
         const wheelBalanceEl = document.getElementById('wheelBalance');
         const spinBtn = document.getElementById('spinBtn');
         const watchAdSpinBtn = document.getElementById('watchAdSpinBtn');
         const wheelResultEl = document.getElementById('wheelResult');
         
-        // تحقق من تاريخ اليوم
         function checkDate() {
             const today = new Date().toDateString();
             if (lastCheckin !== today) {
@@ -648,7 +643,7 @@
             totalPointsEl.textContent = totalPoints;
             todayCountEl.textContent = todayAds;
             streakCountEl.textContent = streak;
-            invitesCountEl.textContent = 0; // هيتحسب من localStorage بعدين
+            invitesCountEl.textContent = 0;
             if (wheelBalanceEl) wheelBalanceEl.textContent = totalPoints;
             localStorage.setItem('totalPoints', totalPoints.toString());
             localStorage.setItem('todayAds', todayAds.toString());
@@ -671,7 +666,7 @@
             alert('✅ تم تسجيل حضورك! +5 نقاط');
         }
         
-        // =========== دعوة صديق (محسّن) ===========
+        // =========== دعوة صديق ===========
         function inviteFriend() {
             const now = Date.now();
             
@@ -748,7 +743,7 @@
         
         function spinWithAd() {
             if (isSpinning) return;
-            startAd('video');
+            startAd(1); // استخدم الفيديو الأول
         }
         
         function startSpin() {
@@ -779,8 +774,8 @@
             }, 4000);
         }
         
-        // =========== نظام الإعلانات ===========
-        function startAd(type) {
+        // =========== نظام الإعلانات (فيديوين) ===========
+        function startAd(num) {
             if (countdownActive) {
                 alert('⏳ يوجد إعلان قيد المشاهدة حالياً');
                 return;
@@ -791,16 +786,16 @@
                 return;
             }
             
-            let showFunc = type === 'video' ? videoShow : inpageShow;
+            let showFunc = num === 1 ? videoShow1 : videoShow2;
             if (!showFunc) {
                 alert('الإعلان لم يتم تحميله بعد، حاول مرة أخرى');
                 return;
             }
             
-            videoAdBtn.disabled = true;
-            inpageAdBtn.disabled = true;
+            videoAdBtn1.disabled = true;
+            videoAdBtn2.disabled = true;
             countdownActive = true;
-            currentAdType = type;
+            currentAd = num;
             adWatched = false;
             
             showFunc()
@@ -809,7 +804,7 @@
                     startCountdown();
                 })
                 .catch(e => {
-                    console.log(`❌ ${type} ad error:`, e);
+                    console.log(`❌ Video ad ${num} error:`, e);
                     statusEl.innerHTML = '❌ حدث خطأ في تشغيل الإعلان';
                     resetButtons();
                 });
@@ -837,8 +832,8 @@
                     statusEl.innerHTML = '✅ تمت المشاهدة! اضغط على استلام نقاطك';
                     claimBtn.classList.remove('hidden');
                     
-                    videoAdBtn.disabled = false;
-                    inpageAdBtn.disabled = false;
+                    videoAdBtn1.disabled = false;
+                    videoAdBtn2.disabled = false;
                 }
             }, 1000);
         }
@@ -857,14 +852,14 @@
             statusEl.innerHTML = '✅ تم إضافة نقطة! شكراً لمشاهدتك الإعلان';
             
             adWatched = false;
-            currentAdType = null;
-            videoAdBtn.disabled = false;
-            inpageAdBtn.disabled = false;
+            currentAd = null;
+            videoAdBtn1.disabled = false;
+            videoAdBtn2.disabled = false;
         }
         
         function resetButtons() {
-            videoAdBtn.disabled = false;
-            inpageAdBtn.disabled = false;
+            videoAdBtn1.disabled = false;
+            videoAdBtn2.disabled = false;
             countdownActive = false;
         }
         
@@ -876,4 +871,4 @@
         }
     </script>
 </body>
-                </html>
+</html>
