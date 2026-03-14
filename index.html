@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>بوت الربح الذكي - التطبيق المصغر</title>
+    <title>بوت الربح الذكي - إعلانات متنوعة</title>
     
-    <!-- مكتبة OnClickA للفيديو فقط -->
+    <!-- مكتبة OnClickA للإعلانات -->
     <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
     
     <style>
@@ -285,9 +285,8 @@
             background: linear-gradient(135deg, #ffaa00, #ff6600);
         }
         
-        .btn-checkin {
-            background: linear-gradient(135deg, #4caf50, #45a049);
-            color: white;
+        .btn-video3 {
+            background: linear-gradient(135deg, #ff6b6b, #ff3b3b);
         }
         
         .timer-container {
@@ -324,51 +323,12 @@
             display: none;
         }
         
-        .settings-list {
+        .status {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
+            border-radius: 16px;
             padding: 16px;
-        }
-        
-        .setting-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .setting-item:last-child {
-            border-bottom: none;
-        }
-        
-        .toggle {
-            width: 50px;
-            height: 28px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 30px;
-            position: relative;
-            cursor: pointer;
-        }
-        
-        .toggle.active {
-            background: #4caf50;
-        }
-        
-        .toggle::after {
-            content: '';
-            width: 24px;
-            height: 24px;
-            background: white;
-            border-radius: 50%;
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            transition: 0.3s;
-        }
-        
-        .toggle.active::after {
-            left: 24px;
+            margin-top: 20px;
+            text-align: center;
         }
         
         .page {
@@ -496,7 +456,7 @@
             </div>
         </div>
         
-        <!-- صفحة الإعلانات (فيديوين فقط) -->
+        <!-- صفحة الإعلانات (بثلاث إعلانات فيديو) -->
         <div id="adsPage" class="page">
             <h2 style="text-align: center; margin-bottom: 20px;">📺 مشاهدة إعلانات</h2>
             
@@ -508,13 +468,19 @@
             </div>
             
             <div class="ad-buttons">
-                <!-- زر إعلان الفيديو الأول (6113667) -->
-                <button class="btn btn-video1" id="videoAdBtn1" onclick="startAd(1)">
-                    <span>▶️</span> شاهد إعلان فيديو 1
+                <!-- إعلان الفيديو الأول (6113667) -->
+                <button class="btn btn-video1" id="videoAdBtn1" onclick="playAd(1)">
+                    <span>▶️</span> إعلان 1 (قديم)
                 </button>
-                <!-- زر إعلان الفيديو الثاني (6113781) -->
-                <button class="btn btn-video2" id="videoAdBtn2" onclick="startAd(2)">
-                    <span>▶️</span> شاهد إعلان فيديو 2
+                
+                <!-- إعلان الفيديو الثاني (6113781) -->
+                <button class="btn btn-video2" id="videoAdBtn2" onclick="playAd(2)">
+                    <span>▶️</span> إعلان 2
+                </button>
+                
+                <!-- إعلان الفيديو الثالث الجديد (6113782) -->
+                <button class="btn btn-video3" id="videoAdBtn3" onclick="playAd(3)">
+                    <span>▶️</span> إعلان 3 (جديد)
                 </button>
             </div>
             
@@ -522,7 +488,7 @@
                 <span>🎁</span> استلم نقاطك
             </button>
             
-            <div class="status" id="status" style="text-align: center; margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 16px;">
+            <div class="status" id="status">
                 ⏳ اضغط على أي إعلان للمشاهدة
             </div>
         </div>
@@ -562,6 +528,7 @@
         // =========== إعدادات OnClickA ===========
         let videoShow1 = null; // للإعلان 6113667
         let videoShow2 = null; // للإعلان 6113781
+        let videoShow3 = null; // للإعلان الجديد 6113782
         let currentAd = null;
         let adWatched = false;
         let timerInterval = null;
@@ -583,6 +550,14 @@
                 console.log('✅ Video ad 2 initialized');
             })
             .catch(e => console.log('❌ Video ad 2 init error:', e));
+        
+        // تهيئة إعلان الفيديو الثالث (6113782)
+        window.initCdTma?.({ id: '6113782' })
+            .then(show => {
+                videoShow3 = show;
+                console.log('✅ Video ad 3 initialized');
+            })
+            .catch(e => console.log('❌ Video ad 3 init error:', e));
         
         // =========== التنقل بين الصفحات ===========
         const pages = {
@@ -624,6 +599,7 @@
         const claimBtn = document.getElementById('claimBtn');
         const videoAdBtn1 = document.getElementById('videoAdBtn1');
         const videoAdBtn2 = document.getElementById('videoAdBtn2');
+        const videoAdBtn3 = document.getElementById('videoAdBtn3');
         const wheelBalanceEl = document.getElementById('wheelBalance');
         const spinBtn = document.getElementById('spinBtn');
         const watchAdSpinBtn = document.getElementById('watchAdSpinBtn');
@@ -743,7 +719,7 @@
         
         function spinWithAd() {
             if (isSpinning) return;
-            startAd(1); // استخدم الفيديو الأول
+            playAd(1); // استخدم الفيديو الأول للمشاهدة
         }
         
         function startSpin() {
@@ -774,8 +750,8 @@
             }, 4000);
         }
         
-        // =========== نظام الإعلانات (فيديوين) ===========
-        function startAd(num) {
+        // =========== نظام الإعلانات ===========
+        function playAd(num) {
             if (countdownActive) {
                 alert('⏳ يوجد إعلان قيد المشاهدة حالياً');
                 return;
@@ -786,14 +762,28 @@
                 return;
             }
             
-            let showFunc = num === 1 ? videoShow1 : videoShow2;
+            let showFunc = null;
+            let adName = '';
+            
+            if (num === 1) {
+                showFunc = videoShow1;
+                adName = 'إعلان 1';
+            } else if (num === 2) {
+                showFunc = videoShow2;
+                adName = 'إعلان 2';
+            } else if (num === 3) {
+                showFunc = videoShow3;
+                adName = 'إعلان 3';
+            }
+            
             if (!showFunc) {
-                alert('الإعلان لم يتم تحميله بعد، حاول مرة أخرى');
+                alert(`${adName} لم يتم تحميله بعد، حاول مرة أخرى`);
                 return;
             }
             
             videoAdBtn1.disabled = true;
             videoAdBtn2.disabled = true;
+            videoAdBtn3.disabled = true;
             countdownActive = true;
             currentAd = num;
             adWatched = false;
@@ -804,7 +794,7 @@
                     startCountdown();
                 })
                 .catch(e => {
-                    console.log(`❌ Video ad ${num} error:`, e);
+                    console.log(`❌ ${adName} error:`, e);
                     statusEl.innerHTML = '❌ حدث خطأ في تشغيل الإعلان';
                     resetButtons();
                 });
@@ -834,6 +824,7 @@
                     
                     videoAdBtn1.disabled = false;
                     videoAdBtn2.disabled = false;
+                    videoAdBtn3.disabled = false;
                 }
             }, 1000);
         }
@@ -855,11 +846,13 @@
             currentAd = null;
             videoAdBtn1.disabled = false;
             videoAdBtn2.disabled = false;
+            videoAdBtn3.disabled = false;
         }
         
         function resetButtons() {
             videoAdBtn1.disabled = false;
             videoAdBtn2.disabled = false;
+            videoAdBtn3.disabled = false;
             countdownActive = false;
         }
         
