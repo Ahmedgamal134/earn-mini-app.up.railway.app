@@ -750,7 +750,8 @@
             
             <div class="wallet-section">
                 <h3>🔗 رابط الدعوة الخاص بك</h3>
-                <div class="referral-link" id="referralLink">https://t.me/yourbot?start=123456</div>
+                <!-- ✅ تم تحديث الرابط هنا لاسم البوت الصحيح -->
+                <div class="referral-link" id="referralLink">https://t.me/YourTapEarnBot?start=123456</div>
                 <button class="copy-btn" onclick="copyReferralLink()">📋 نسخ الرابط</button>
             </div>
             
@@ -931,9 +932,10 @@
             document.getElementById('referralEarned').textContent = referralEarned + ' نقطة';
         }
         
+        // ✅ تم تحديث هذه الدالة لاستخدام اسم البوت الصحيح
         function setReferralLink() {
             if (userId) {
-                const link = `https://t.me/your_bot_username?start=${userId}`;
+                const link = `https://t.me/YourTapEarnBot?start=${userId}`;
                 document.getElementById('referralLink').textContent = link;
             }
         }
