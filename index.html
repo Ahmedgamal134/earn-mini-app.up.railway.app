@@ -8,6 +8,9 @@
     <!-- مكتبة OnClickA للإعلانات -->
     <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
     
+    <!-- SweetAlert للإشعارات الجميلة -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
         * {
             margin: 0;
@@ -338,6 +341,154 @@
         .page.active {
             display: block;
         }
+        
+        /* ستايل المحافظ */
+        .wallet-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .wallet-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .wallet-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(-5px);
+        }
+        
+        .wallet-item.selected {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .wallet-icon {
+            font-size: 32px;
+            margin-left: 15px;
+        }
+        
+        .wallet-info {
+            flex: 1;
+        }
+        
+        .wallet-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .wallet-number {
+            font-size: 14px;
+            opacity: 0.7;
+            direction: ltr;
+            text-align: left;
+        }
+        
+        .wallet-badge {
+            background: #ffd700;
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .add-wallet-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed #ffd700;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .add-wallet-btn:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .wallet-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .wallet-type-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .wallet-type-btn:hover {
+            background: rgba(255, 215, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .wallet-type-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 16px;
+            margin: 10px 0;
+            direction: ltr;
+            text-align: left;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+        
+        .withdraw-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .withdraw-amount {
+            font-size: 36px;
+            font-weight: 700;
+            color: #ffd700;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .transaction-id {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            text-align: center;
+            margin: 10px 0;
+            direction: ltr;
+        }
     </style>
 </head>
 <body>
@@ -353,6 +504,10 @@
         <div class="nav-item" data-page="ads">
             <i>📺</i>
             <span>إعلانات</span>
+        </div>
+        <div class="nav-item" data-page="wallet">
+            <i>💳</i>
+            <span>المحفظة</span>
         </div>
         <div class="nav-item" data-page="profile">
             <i>👤</i>
@@ -402,10 +557,10 @@
                     <div class="section-title">تسجيل يومي</div>
                     <div class="section-subtitle">+5 نقاط</div>
                 </div>
-                <div class="section-card" onclick="inviteFriend()">
-                    <div class="section-icon">👥</div>
-                    <div class="section-title">دعوة صديق</div>
-                    <div class="section-subtitle">+80 نقطة</div>
+                <div class="section-card" onclick="navigateTo('wallet')">
+                    <div class="section-icon">💳</div>
+                    <div class="section-title">سحب الأرباح</div>
+                    <div class="section-subtitle">حوّل نقاطك لفلوس</div>
                 </div>
             </div>
         </div>
@@ -456,7 +611,7 @@
             </div>
         </div>
         
-        <!-- صفحة الإعلانات (بثلاث إعلانات فيديو) -->
+        <!-- صفحة الإعلانات -->
         <div id="adsPage" class="page">
             <h2 style="text-align: center; margin-bottom: 20px;">📺 مشاهدة إعلانات</h2>
             
@@ -468,17 +623,14 @@
             </div>
             
             <div class="ad-buttons">
-                <!-- إعلان الفيديو الأول (6113667) -->
                 <button class="btn btn-video1" id="videoAdBtn1" onclick="playAd(1)">
                     <span>▶️</span> إعلان 1 (قديم)
                 </button>
                 
-                <!-- إعلان الفيديو الثاني (6113781) -->
                 <button class="btn btn-video2" id="videoAdBtn2" onclick="playAd(2)">
                     <span>▶️</span> إعلان 2
                 </button>
                 
-                <!-- إعلان الفيديو الثالث الجديد (6113782) -->
                 <button class="btn btn-video3" id="videoAdBtn3" onclick="playAd(3)">
                     <span>▶️</span> إعلان 3 (جديد)
                 </button>
@@ -490,6 +642,132 @@
             
             <div class="status" id="status">
                 ⏳ اضغط على أي إعلان للمشاهدة
+            </div>
+        </div>
+        
+        <!-- صفحة المحفظة والسحب (جديد) -->
+        <div id="walletPage" class="page">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2>💳 المحفظة الإلكترونية</h2>
+            </div>
+            
+            <!-- عرض الرصيد -->
+            <div class="balance-card" style="margin-bottom: 20px;">
+                <div class="balance-header">
+                    <span class="balance-title">رصيدك الحالي</span>
+                </div>
+                <div class="balance-amount" id="walletPoints">0</div>
+                <div style="text-align: center; margin-top: 10px; font-size: 18px;" id="walletEgp">0.00 جنيه</div>
+            </div>
+            
+            <!-- شاشة المحافظ المحفوظة -->
+            <div id="savedWalletsScreen">
+                <div class="wallet-section">
+                    <h3 style="margin-bottom: 15px;">📋 محافظي المحفوظة</h3>
+                    <div id="walletsList">
+                        <!-- هتتعبأ بالجافاسكريبت -->
+                    </div>
+                    
+                    <div class="add-wallet-btn" onclick="showAddWalletScreen()">
+                        <span style="font-size: 32px;">➕</span>
+                        <h3 style="margin: 10px 0;">إضافة محفظة جديدة</h3>
+                        <p style="opacity: 0.7;">فودافون كاش - أورانج كاش - اتصالات - PayPal</p>
+                    </div>
+                </div>
+                
+                <div class="wallet-section">
+                    <h3 style="margin-bottom: 15px;">📊 معلومات السحب</h3>
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 15px;">
+                        <p>💰 الحد الأدنى للسحب: <strong id="minWithdrawal">300</strong> نقطة</p>
+                        <p>💵 300 نقطة = <strong>55</strong> جنيه</p>
+                        <p>⏳ مدة المعالجة: 24 ساعة كحد أقصى</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- شاشة إضافة محفظة جديدة -->
+            <div id="addWalletScreen" style="display: none;">
+                <div class="wallet-section">
+                    <h3 style="margin-bottom: 15px;">➕ إضافة محفظة جديدة</h3>
+                    
+                    <div class="wallet-grid">
+                        <div class="wallet-type-btn" onclick="selectWalletType('vodafone')">
+                            <div class="wallet-type-icon">📱</div>
+                            <div>فودافون كاش</div>
+                        </div>
+                        <div class="wallet-type-btn" onclick="selectWalletType('orange')">
+                            <div class="wallet-type-icon">🟠</div>
+                            <div>أورانج كاش</div>
+                        </div>
+                        <div class="wallet-type-btn" onclick="selectWalletType('etisalat')">
+                            <div class="wallet-type-icon">📞</div>
+                            <div>اتصالات كاش</div>
+                        </div>
+                        <div class="wallet-type-btn" onclick="selectWalletType('we')">
+                            <div class="wallet-type-icon">💳</div>
+                            <div>وي كاش</div>
+                        </div>
+                        <div class="wallet-type-btn" onclick="selectWalletType('paypal')" style="grid-column: span 2;">
+                            <div class="wallet-type-icon">🌐</div>
+                            <div>PayPal</div>
+                        </div>
+                    </div>
+                    
+                    <div id="walletInputSection" style="display: none;">
+                        <input type="text" class="input-field" id="walletNumber" placeholder="أدخل رقم المحفظة" dir="ltr">
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn" style="flex: 2; background: linear-gradient(135deg, #4CAF50, #45a049); color: white;" onclick="saveWallet()">💾 حفظ المحفظة</button>
+                            <button class="btn" style="flex: 1; background: #f44336; color: white;" onclick="hideAddWalletScreen()">❌ إلغاء</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- شاشة تأكيد السحب -->
+            <div id="withdrawConfirmScreen" style="display: none;">
+                <div class="withdraw-summary">
+                    <h3>تأكيد طلب السحب</h3>
+                    <div class="withdraw-amount" id="withdrawAmount">0.00</div>
+                    <div style="text-align: center;">جنيه</div>
+                    
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 16px; padding: 15px; margin: 15px 0;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span>💳 المحفظة:</span>
+                            <span id="confirmWalletType">فودافون كاش</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span>📱 الرقم:</span>
+                            <span id="confirmWalletNumber" dir="ltr">01012345678</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>💰 النقاط:</span>
+                            <span id="confirmPoints">300</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn" style="flex: 2; background: linear-gradient(135deg, #4CAF50, #45a049); color: white;" onclick="confirmWithdraw()">✅ تأكيد السحب</button>
+                        <button class="btn" style="flex: 1; background: #f44336; color: white;" onclick="cancelWithdraw()">❌ إلغاء</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- شاشة نتيجة السحب -->
+            <div id="withdrawResultScreen" style="display: none;">
+                <div class="withdraw-summary">
+                    <div style="font-size: 64px; text-align: center; margin-bottom: 20px;">✅</div>
+                    <h3 style="text-align: center; margin-bottom: 20px;">تم استلام طلب السحب!</h3>
+                    
+                    <div class="transaction-id" id="transactionId">WD123456789</div>
+                    
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 16px; padding: 15px; margin: 15px 0;">
+                        <p>📌 تم خصم النقاط من رصيدك</p>
+                        <p>⏳ سيتم مراجعة الطلب خلال 24 ساعة</p>
+                        <p>💳 سيتم التحويل إلى محفظتك فور الموافقة</p>
+                    </div>
+                    
+                    <button class="btn" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;" onclick="backToWallets()">🔙 العودة للمحافظ</button>
+                </div>
             </div>
         </div>
         
@@ -526,144 +804,463 @@
     
     <script>
         // =========== إعدادات OnClickA ===========
-        let videoShow1 = null; // للإعلان 6113667
-        let videoShow2 = null; // للإعلان 6113781
-        let videoShow3 = null; // للإعلان الجديد 6113782
+        let videoShow1 = null;
+        let videoShow2 = null;
+        let videoShow3 = null;
         let currentAd = null;
         let adWatched = false;
         let timerInterval = null;
         let timeLeft = 30;
         let countdownActive = false;
         
-        // تهيئة إعلان الفيديو الأول (6113667)
-        window.initCdTma?.({ id: '6113667' })
-            .then(show => {
-                videoShow1 = show;
-                console.log('✅ Video ad 1 initialized');
-            })
-            .catch(e => console.log('❌ Video ad 1 init error:', e));
+        // =========== بيانات المستخدم ===========
+        let userId = null;
+        let userPoints = 0;
+        let userTotalEarned = 0;
+        let todayAds = 0;
+        let streak = 0;
         
-        // تهيئة إعلان الفيديو الثاني (6113781)
-        window.initCdTma?.({ id: '6113781' })
-            .then(show => {
-                videoShow2 = show;
-                console.log('✅ Video ad 2 initialized');
-            })
-            .catch(e => console.log('❌ Video ad 2 init error:', e));
+        // =========== بيانات المحافظ ===========
+        let wallets = [];
+        let selectedWalletType = null;
+        let selectedWalletForWithdraw = null;
         
-        // تهيئة إعلان الفيديو الثالث (6113782)
-        window.initCdTma?.({ id: '6113782' })
-            .then(show => {
-                videoShow3 = show;
-                console.log('✅ Video ad 3 initialized');
-            })
-            .catch(e => console.log('❌ Video ad 3 init error:', e));
-        
-        // =========== التنقل بين الصفحات ===========
-        const pages = {
-            home: document.getElementById('homePage'),
-            wheel: document.getElementById('wheelPage'),
-            ads: document.getElementById('adsPage'),
-            profile: document.getElementById('profilePage')
+        const WALLET_TYPES = {
+            'vodafone': { name: 'فودافون كاش', icon: '📱', prefix: ['010', '011', '012'] },
+            'orange': { name: 'أورانج كاش', icon: '🟠', prefix: ['0100', '0110', '0120'] },
+            'etisalat': { name: 'اتصالات كاش', icon: '📞', prefix: ['011'] },
+            'we': { name: 'وي كاش', icon: '💳', prefix: ['015'] },
+            'paypal': { name: 'PayPal', icon: '🌐', prefix: ['email'] }
         };
         
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-                item.classList.add('active');
-                navigateTo(item.dataset.page);
+        // تهيئة إعلانات الفيديو
+        window.initCdTma?.({ id: '6113667' })
+            .then(show => { videoShow1 = show; console.log('✅ Video ad 1 initialized'); })
+            .catch(e => console.log('❌ Video ad 1 init error:', e));
+        
+        window.initCdTma?.({ id: '6113781' })
+            .then(show => { videoShow2 = show; console.log('✅ Video ad 2 initialized'); })
+            .catch(e => console.log('❌ Video ad 2 init error:', e));
+        
+        window.initCdTma?.({ id: '6113782' })
+            .then(show => { videoShow3 = show; console.log('✅ Video ad 3 initialized'); })
+            .catch(e => console.log('❌ Video ad 3 init error:', e));
+        
+        // =========== تهيئة التطبيق ===========
+        document.addEventListener('DOMContentLoaded', function() {
+            // الحصول على معرف المستخدم من تليجرام
+            if (window.Telegram && Telegram.WebApp) {
+                Telegram.WebApp.ready();
+                const initData = Telegram.WebApp.initData;
+                const user = Telegram.WebApp.initDataUnsafe?.user;
+                
+                if (user) {
+                    userId = user.id;
+                    document.getElementById('userId').value = userId;
+                    loadUserData();
+                    loadWallets();
+                } else {
+                    // للتجريب بدون تليجرام
+                    userId = prompt("أدخل معرف المستخدم للتجريب:", "123456789");
+                    if (userId) loadUserData();
+                }
+            } else {
+                // للتجريب بدون تليجرام
+                console.log("Telegram WebApp not available");
+                userId = prompt("أدخل معرف المستخدم للتجريب:", "123456789");
+                if (userId) loadUserData();
+            }
+            
+            // التنقل بين الصفحات
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+                    navigateTo(item.dataset.page);
+                });
             });
         });
         
-        function navigateTo(pageName) {
-            Object.values(pages).forEach(page => page.classList.remove('active'));
-            pages[pageName].classList.add('active');
-        }
-        
-        // =========== بيانات المستخدم ===========
-        let todayAds = parseInt(localStorage.getItem('todayAds') || '0');
-        let totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
-        let streak = parseInt(localStorage.getItem('streak') || '0');
-        let lastCheckin = localStorage.getItem('lastCheckin') || '';
-        let lastInviteTime = 0;
-        const INVITE_COOLDOWN = 3600000; // ساعة
-        
-        // عناصر HTML
-        const totalPointsEl = document.getElementById('totalPoints');
-        const todayCountEl = document.getElementById('todayCount');
-        const streakCountEl = document.getElementById('streakCount');
-        const invitesCountEl = document.getElementById('invitesCount');
-        const timerEl = document.getElementById('timer');
-        const progressEl = document.getElementById('progress');
-        const statusEl = document.getElementById('status');
-        const claimBtn = document.getElementById('claimBtn');
-        const videoAdBtn1 = document.getElementById('videoAdBtn1');
-        const videoAdBtn2 = document.getElementById('videoAdBtn2');
-        const videoAdBtn3 = document.getElementById('videoAdBtn3');
-        const wheelBalanceEl = document.getElementById('wheelBalance');
-        const spinBtn = document.getElementById('spinBtn');
-        const watchAdSpinBtn = document.getElementById('watchAdSpinBtn');
-        const wheelResultEl = document.getElementById('wheelResult');
-        
-        function checkDate() {
-            const today = new Date().toDateString();
-            if (lastCheckin !== today) {
-                lastCheckin = today;
-                localStorage.setItem('lastCheckin', today);
-            }
-        }
-        checkDate();
-        updateUI();
-        
-        function updateUI() {
-            totalPointsEl.textContent = totalPoints;
-            todayCountEl.textContent = todayAds;
-            streakCountEl.textContent = streak;
-            invitesCountEl.textContent = 0;
-            if (wheelBalanceEl) wheelBalanceEl.textContent = totalPoints;
-            localStorage.setItem('totalPoints', totalPoints.toString());
-            localStorage.setItem('todayAds', todayAds.toString());
-            localStorage.setItem('streak', streak.toString());
-        }
-        
-        // =========== تسجيل يومي ===========
-        function dailyCheckin() {
-            const today = new Date().toDateString();
-            if (lastCheckin === today) {
-                alert('✅ لقد سجلت حضورك اليوم بالفعل!');
-                return;
-            }
-            
-            lastCheckin = today;
-            streak++;
-            totalPoints += 5;
-            updateUI();
-            localStorage.setItem('lastCheckin', today);
-            alert('✅ تم تسجيل حضورك! +5 نقاط');
-        }
-        
-        // =========== دعوة صديق ===========
-        function inviteFriend() {
-            const now = Date.now();
-            
-            if (now - lastInviteTime < INVITE_COOLDOWN) {
-                alert('⏳ يمكنك دعوة صديق مرة واحدة كل ساعة فقط.');
-                return;
-            }
-            
-            const inviteLink = `https://t.me/share/url?url=https://t.me/YourTapEarnBot/Earn_App&text=انضم إلي في بوت الربح الذكي واكسب نقاط!`;
-            window.open(inviteLink, '_blank');
-            
-            setTimeout(() => {
-                if (confirm('هل قمت بدعوة صديق بالفعل؟')) {
-                    lastInviteTime = now;
-                    totalPoints += 80;
+        // =========== دوال API ===========
+        async function loadUserData() {
+            try {
+                const response = await fetch(`/api/user/${userId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    userPoints = data.points;
+                    userTotalEarned = data.total_earned;
+                    todayAds = data.ads_today;
+                    streak = data.streak;
+                    
                     updateUI();
-                    alert('👥 تمت إضافة 80 نقطة!');
-                } else {
-                    alert('❌ لم تتم إضافة النقاط.');
                 }
-            }, 3000);
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                // بيانات تجريبية
+                userPoints = 1250;
+                userTotalEarned = 2500;
+                todayAds = 15;
+                streak = 7;
+                updateUI();
+            }
+        }
+        
+        async function loadWallets() {
+            try {
+                const response = await fetch(`/api/wallets/${userId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    wallets = data.wallets;
+                    displayWallets();
+                }
+            } catch (error) {
+                console.error('Error loading wallets:', error);
+                // بيانات تجريبية
+                wallets = [
+                    { type: 'vodafone', type_name: 'فودافون كاش', number: '01012345678', is_default: true },
+                    { type: 'paypal', type_name: 'PayPal', number: 'user@example.com', is_default: false }
+                ];
+                displayWallets();
+            }
+        }
+        
+        async function saveWalletToAPI(walletType, walletNumber) {
+            // هنا هتستدعي API الحفظ
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    wallets.push({
+                        type: walletType,
+                        type_name: WALLET_TYPES[walletType].name,
+                        number: walletNumber,
+                        is_default: wallets.length === 0
+                    });
+                    resolve({ success: true });
+                }, 500);
+            });
+        }
+        
+        async function requestWithdraw(walletType, walletNumber, amount, points) {
+            try {
+                const response = await fetch('/api/withdraw_request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        wallet_type: walletType,
+                        wallet_number: walletNumber,
+                        amount: amount,
+                        points: points
+                    })
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('Error requesting withdraw:', error);
+                // محاكاة نجاح للتجريب
+                return {
+                    success: true,
+                    transaction_id: `WD${Date.now()}${Math.floor(Math.random()*1000)}`
+                };
+            }
+        }
+        
+        // =========== دوال تحديث الواجهة ===========
+        function updateUI() {
+            document.getElementById('totalPoints').textContent = userPoints;
+            document.getElementById('todayCount').textContent = todayAds;
+            document.getElementById('streakCount').textContent = streak;
+            document.getElementById('invitesCount').textContent = 0;
+            document.getElementById('totalEarned').textContent = userTotalEarned + ' نقطة';
+            
+            if (document.getElementById('walletPoints')) {
+                document.getElementById('walletPoints').textContent = userPoints;
+                const egpValue = (userPoints / 300) * 55;
+                document.getElementById('walletEgp').textContent = egpValue.toFixed(2) + ' جنيه';
+            }
+            
+            if (document.getElementById('wheelBalance')) {
+                document.getElementById('wheelBalance').textContent = userPoints;
+            }
+        }
+        
+        function displayWallets() {
+            const walletsList = document.getElementById('walletsList');
+            if (!walletsList) return;
+            
+            if (wallets.length === 0) {
+                walletsList.innerHTML = '<div style="text-align: center; padding: 20px; opacity: 0.7;">لا توجد محافظ محفوظة</div>';
+                return;
+            }
+            
+            let html = '';
+            wallets.forEach((wallet, index) => {
+                const walletInfo = WALLET_TYPES[wallet.type] || { name: wallet.type_name, icon: '💳' };
+                html += `
+                    <div class="wallet-item" onclick="selectWalletForWithdraw(${index})">
+                        <div style="display: flex; align-items: center;">
+                            <span class="wallet-icon">${walletInfo.icon || '💳'}</span>
+                            <div class="wallet-info">
+                                <div class="wallet-name">${walletInfo.name || wallet.type_name}</div>
+                                <div class="wallet-number" dir="ltr">${wallet.number}</div>
+                            </div>
+                        </div>
+                        ${wallet.is_default ? '<span class="wallet-badge">⭐ افتراضي</span>' : ''}
+                    </div>
+                `;
+            });
+            
+            walletsList.innerHTML = html;
+        }
+        
+        // =========== دوال المحفظة ===========
+        function showAddWalletScreen() {
+            document.getElementById('savedWalletsScreen').style.display = 'none';
+            document.getElementById('addWalletScreen').style.display = 'block';
+        }
+        
+        function hideAddWalletScreen() {
+            document.getElementById('addWalletScreen').style.display = 'none';
+            document.getElementById('savedWalletsScreen').style.display = 'block';
+            selectedWalletType = null;
+            document.getElementById('walletInputSection').style.display = 'none';
+        }
+        
+        function selectWalletType(type) {
+            selectedWalletType = type;
+            document.getElementById('walletInputSection').style.display = 'block';
+            document.getElementById('walletNumber').placeholder = 
+                type === 'paypal' ? 'example@email.com' : 'أدخل رقم المحفظة (11 رقم)';
+        }
+        
+        function validateWalletNumber(type, number) {
+            if (type === 'paypal') {
+                return number.includes('@') || number.includes('.');
+            } else {
+                return /^\d{11}$/.test(number);
+            }
+        }
+        
+        async function saveWallet() {
+            const number = document.getElementById('walletNumber').value.trim();
+            
+            if (!selectedWalletType || !number) {
+                Swal.fire('خطأ', 'الرجاء إدخال رقم المحفظة', 'error');
+                return;
+            }
+            
+            if (!validateWalletNumber(selectedWalletType, number)) {
+                Swal.fire('خطأ', 'رقم المحفظة غير صحيح', 'error');
+                return;
+            }
+            
+            const result = await saveWalletToAPI(selectedWalletType, number);
+            
+            if (result.success) {
+                Swal.fire('تم', 'تم حفظ المحفظة بنجاح', 'success');
+                hideAddWalletScreen();
+                loadWallets();
+            } else {
+                Swal.fire('خطأ', 'حدث خطأ في حفظ المحفظة', 'error');
+            }
+        }
+        
+        function selectWalletForWithdraw(index) {
+            const wallet = wallets[index];
+            const points = userPoints;
+            const minWithdrawal = 300;
+            
+            if (points < minWithdrawal) {
+                Swal.fire('عذراً', `الحد الأدنى للسحب هو ${minWithdrawal} نقطة`, 'warning');
+                return;
+            }
+            
+            selectedWalletForWithdraw = wallet;
+            
+            const egpAmount = (points / 300) * 55;
+            
+            document.getElementById('withdrawAmount').textContent = egpAmount.toFixed(2);
+            document.getElementById('confirmWalletType').textContent = WALLET_TYPES[wallet.type]?.name || wallet.type_name;
+            document.getElementById('confirmWalletNumber').textContent = wallet.number;
+            document.getElementById('confirmPoints').textContent = points;
+            
+            document.getElementById('savedWalletsScreen').style.display = 'none';
+            document.getElementById('withdrawConfirmScreen').style.display = 'block';
+        }
+        
+        async function confirmWithdraw() {
+            if (!selectedWalletForWithdraw) return;
+            
+            const points = userPoints;
+            const egpAmount = (points / 300) * 55;
+            
+            const result = await requestWithdraw(
+                selectedWalletForWithdraw.type,
+                selectedWalletForWithdraw.number,
+                egpAmount,
+                points
+            );
+            
+            if (result.success) {
+                document.getElementById('transactionId').textContent = result.transaction_id;
+                document.getElementById('withdrawConfirmScreen').style.display = 'none';
+                document.getElementById('withdrawResultScreen').style.display = 'block';
+                
+                // تحديث الرصيد
+                userPoints = 0;
+                updateUI();
+            } else {
+                Swal.fire('خطأ', result.error || 'حدث خطأ في طلب السحب', 'error');
+            }
+        }
+        
+        function cancelWithdraw() {
+            selectedWalletForWithdraw = null;
+            document.getElementById('withdrawConfirmScreen').style.display = 'none';
+            document.getElementById('savedWalletsScreen').style.display = 'block';
+        }
+        
+        function backToWallets() {
+            document.getElementById('withdrawResultScreen').style.display = 'none';
+            document.getElementById('savedWalletsScreen').style.display = 'block';
+            selectedWalletForWithdraw = null;
+            loadWallets();
+        }
+        
+        // =========== دوال التنقل ===========
+        function navigateTo(pageName) {
+            const pages = {
+                home: 'homePage',
+                wheel: 'wheelPage',
+                ads: 'adsPage',
+                wallet: 'walletPage',
+                profile: 'profilePage'
+            };
+            
+            Object.values(pages).forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+            
+            document.getElementById(pages[pageName]).classList.add('active');
+            
+            if (pageName === 'wallet') {
+                loadWallets();
+                updateUI();
+            }
+        }
+        
+        // =========== دوال الإعلانات ===========
+        function playAd(num) {
+            if (countdownActive) {
+                Swal.fire('⏳', 'يوجد إعلان قيد المشاهدة حالياً', 'warning');
+                return;
+            }
+            
+            if (todayAds >= 400) {
+                Swal.fire('❌', 'لقد استنفدت حد الإعلانات اليومي (400 إعلان)', 'error');
+                return;
+            }
+            
+            let showFunc = null;
+            if (num === 1) showFunc = videoShow1;
+            else if (num === 2) showFunc = videoShow2;
+            else if (num === 3) showFunc = videoShow3;
+            
+            if (!showFunc) {
+                Swal.fire('❌', 'الإعلان لم يتم تحميله بعد، حاول مرة أخرى', 'error');
+                return;
+            }
+            
+            document.getElementById('videoAdBtn1').disabled = true;
+            document.getElementById('videoAdBtn2').disabled = true;
+            document.getElementById('videoAdBtn3').disabled = true;
+            countdownActive = true;
+            currentAd = num;
+            adWatched = false;
+            
+            showFunc()
+                .then(() => {
+                    document.getElementById('status').innerHTML = '📺 يتم تشغيل الإعلان...';
+                    startCountdown();
+                })
+                .catch(e => {
+                    console.log('❌ Ad error:', e);
+                    document.getElementById('status').innerHTML = '❌ حدث خطأ في تشغيل الإعلان';
+                    resetButtons();
+                });
+        }
+        
+        function startCountdown() {
+            timeLeft = 30;
+            document.getElementById('timer').textContent = timeLeft;
+            document.getElementById('progress').style.width = '100%';
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+                
+                let progressPercent = (timeLeft / 30) * 100;
+                document.getElementById('progress').style.width = progressPercent + '%';
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('timer').textContent = '0';
+                    document.getElementById('progress').style.width = '0%';
+                    countdownActive = false;
+                    adWatched = true;
+                    
+                    document.getElementById('status').innerHTML = '✅ تمت المشاهدة! اضغط على استلام نقاطك';
+                    document.getElementById('claimBtn').classList.remove('hidden');
+                    
+                    document.getElementById('videoAdBtn1').disabled = false;
+                    document.getElementById('videoAdBtn2').disabled = false;
+                    document.getElementById('videoAdBtn3').disabled = false;
+                }
+            }, 1000);
+        }
+        
+        function claimReward() {
+            if (!adWatched) {
+                Swal.fire('❌', 'يجب مشاهدة الإعلان أولاً!', 'error');
+                return;
+            }
+            
+            todayAds++;
+            userPoints++;
+            updateUI();
+            
+            document.getElementById('claimBtn').classList.add('hidden');
+            document.getElementById('status').innerHTML = '✅ تم إضافة نقطة! شكراً لمشاهدتك الإعلان';
+            
+            adWatched = false;
+            currentAd = null;
+        }
+        
+        function resetButtons() {
+            document.getElementById('videoAdBtn1').disabled = false;
+            document.getElementById('videoAdBtn2').disabled = false;
+            document.getElementById('videoAdBtn3').disabled = false;
+            countdownActive = false;
+        }
+        
+        // =========== دوال أخرى ===========
+        function dailyCheckin() {
+            if (userPoints) {
+                userPoints += 5;
+                streak++;
+                updateUI();
+                Swal.fire('✅', 'تم تسجيل حضورك! +5 نقاط', 'success');
+            }
+        }
+        
+        function logout() {
+            if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+                if (window.Telegram && Telegram.WebApp) {
+                    Telegram.WebApp.close();
+                } else {
+                    window.location.reload();
+                }
+            }
         }
         
         // =========== عجلة الحظ ===========
@@ -708,25 +1305,25 @@
         
         function spinWheel() {
             if (isSpinning) return;
-            if (totalPoints < 50) {
-                alert('❌ رصيدك غير كافٍ! تحتاج 50 نقطة للعب');
+            if (userPoints < 50) {
+                Swal.fire('❌', 'رصيدك غير كافٍ! تحتاج 50 نقطة للعب', 'error');
                 return;
             }
-            totalPoints -= 50;
+            userPoints -= 50;
             updateUI();
             startSpin();
         }
         
         function spinWithAd() {
             if (isSpinning) return;
-            playAd(1); // استخدم الفيديو الأول للمشاهدة
+            playAd(1);
         }
         
         function startSpin() {
             isSpinning = true;
-            spinBtn.disabled = true;
-            watchAdSpinBtn.disabled = true;
-            wheelResultEl.classList.add('hidden');
+            document.getElementById('spinBtn').disabled = true;
+            document.getElementById('watchAdSpinBtn').disabled = true;
+            document.getElementById('wheelResult').classList.add('hidden');
             
             const spinAngle = Math.random() * 2000 + 2000;
             currentRotation += spinAngle;
@@ -734,134 +1331,21 @@
             
             setTimeout(() => {
                 isSpinning = false;
-                spinBtn.disabled = false;
-                watchAdSpinBtn.disabled = false;
+                document.getElementById('spinBtn').disabled = false;
+                document.getElementById('watchAdSpinBtn').disabled = false;
                 
                 const finalAngle = currentRotation % 360;
                 const segmentIndex = Math.floor((360 - finalAngle) / (360 / segments.length)) % segments.length;
                 const prize = segments[segmentIndex].value;
                 
-                totalPoints += prize;
+                userPoints += prize;
                 updateUI();
                 
-                wheelResultEl.classList.remove('hidden');
-                wheelResultEl.innerHTML = `🎉 حصلت على ${prize} نقطة!`;
-                setTimeout(() => wheelResultEl.classList.add('hidden'), 3000);
+                document.getElementById('wheelResult').classList.remove('hidden');
+                document.getElementById('wheelResult').innerHTML = `🎉 حصلت على ${prize} نقطة!`;
+                setTimeout(() => document.getElementById('wheelResult').classList.add('hidden'), 3000);
             }, 4000);
-        }
-        
-        // =========== نظام الإعلانات ===========
-        function playAd(num) {
-            if (countdownActive) {
-                alert('⏳ يوجد إعلان قيد المشاهدة حالياً');
-                return;
-            }
-            
-            if (todayAds >= 400) {
-                alert('❌ لقد استنفدت حد الإعلانات اليومي (400 إعلان)');
-                return;
-            }
-            
-            let showFunc = null;
-            let adName = '';
-            
-            if (num === 1) {
-                showFunc = videoShow1;
-                adName = 'إعلان 1';
-            } else if (num === 2) {
-                showFunc = videoShow2;
-                adName = 'إعلان 2';
-            } else if (num === 3) {
-                showFunc = videoShow3;
-                adName = 'إعلان 3';
-            }
-            
-            if (!showFunc) {
-                alert(`${adName} لم يتم تحميله بعد، حاول مرة أخرى`);
-                return;
-            }
-            
-            videoAdBtn1.disabled = true;
-            videoAdBtn2.disabled = true;
-            videoAdBtn3.disabled = true;
-            countdownActive = true;
-            currentAd = num;
-            adWatched = false;
-            
-            showFunc()
-                .then(() => {
-                    statusEl.innerHTML = '📺 يتم تشغيل الإعلان...';
-                    startCountdown();
-                })
-                .catch(e => {
-                    console.log(`❌ ${adName} error:`, e);
-                    statusEl.innerHTML = '❌ حدث خطأ في تشغيل الإعلان';
-                    resetButtons();
-                });
-        }
-        
-        function startCountdown() {
-            timeLeft = 30;
-            timerEl.textContent = timeLeft;
-            progressEl.style.width = '100%';
-            
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                timerEl.textContent = timeLeft;
-                
-                let progressPercent = (timeLeft / 30) * 100;
-                progressEl.style.width = progressPercent + '%';
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    timerEl.textContent = '0';
-                    progressEl.style.width = '0%';
-                    countdownActive = false;
-                    adWatched = true;
-                    
-                    statusEl.innerHTML = '✅ تمت المشاهدة! اضغط على استلام نقاطك';
-                    claimBtn.classList.remove('hidden');
-                    
-                    videoAdBtn1.disabled = false;
-                    videoAdBtn2.disabled = false;
-                    videoAdBtn3.disabled = false;
-                }
-            }, 1000);
-        }
-        
-        function claimReward() {
-            if (!adWatched) {
-                alert('❌ يجب مشاهدة الإعلان أولاً!');
-                return;
-            }
-            
-            todayAds++;
-            totalPoints++;
-            updateUI();
-            
-            claimBtn.classList.add('hidden');
-            statusEl.innerHTML = '✅ تم إضافة نقطة! شكراً لمشاهدتك الإعلان';
-            
-            adWatched = false;
-            currentAd = null;
-            videoAdBtn1.disabled = false;
-            videoAdBtn2.disabled = false;
-            videoAdBtn3.disabled = false;
-        }
-        
-        function resetButtons() {
-            videoAdBtn1.disabled = false;
-            videoAdBtn2.disabled = false;
-            videoAdBtn3.disabled = false;
-            countdownActive = false;
-        }
-        
-        function logout() {
-            if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
-                localStorage.clear();
-                window.location.reload();
-            }
         }
     </script>
 </body>
-</html>
+    </html>
