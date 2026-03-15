@@ -583,10 +583,13 @@
             
             <div class="ad-buttons">
                 <button class="btn btn-ad" id="adBtn1" onclick="playAd(1)">
-                    <span>▶️</span> مشاهدة إعلان 1 (431053)
+                    <span>▶️</span> إعلان 1 (6113667)
                 </button>
                 <button class="btn btn-ad" id="adBtn2" onclick="playAd(2)">
-                    <span>▶️</span> مشاهدة إعلان 2 (431251)
+                    <span>▶️</span> إعلان 2 (6113781)
+                </button>
+                <button class="btn btn-ad" id="adBtn3" onclick="playAd(3)">
+                    <span>▶️</span> إعلان 3 (6113782)
                 </button>
             </div>
             
@@ -750,7 +753,6 @@
             
             <div class="wallet-section">
                 <h3>🔗 رابط الدعوة الخاص بك</h3>
-                <!-- رابط الدعوة مع اسم البوت الصحيح -->
                 <div class="referral-link" id="referralLink">https://t.me/YourTapEarnBot?start=123456</div>
                 <button class="copy-btn" onclick="copyReferralLink()">📋 نسخ الرابط</button>
             </div>
@@ -777,8 +779,9 @@
         let wallets = [];
         
         // =========== متغيرات الإعلانات OnClicka ===========
-        let videoShow1 = null; // للإعلان 431053
-        let videoShow2 = null; // للإعلان 431251
+        let videoShow1 = null; // للإعلان 6113667
+        let videoShow2 = null; // للإعلان 6113781
+        let videoShow3 = null; // للإعلان 6113782
         let currentAd = null;
         let timerInterval = null;
         let timeLeft = 30;
@@ -823,23 +826,32 @@
                 if (userId) loadUserData();
             }
             
-            // ✅ تهيئة إعلانات OnClicka بشكل صحيح
-            window.initCdTma?.({ id: '431053' }).then(show => {
+            // تهيئة إعلانات OnClicka
+            window.initCdTma?.({ id: '6113667' }).then(show => {
                 videoShow1 = show;
-                console.log('✅ إعلان 431053 جاهز');
+                console.log('✅ إعلان 6113667 جاهز');
                 document.getElementById('adStatus').innerHTML = '✅ الإعلان الأول جاهز';
             }).catch(e => {
-                console.log('❌ خطأ في إعلان 431053:', e);
+                console.log('❌ خطأ في إعلان 6113667:', e);
                 document.getElementById('adStatus').innerHTML = '❌ فشل تحميل الإعلان 1';
             });
             
-            window.initCdTma?.({ id: '431251' }).then(show => {
+            window.initCdTma?.({ id: '6113781' }).then(show => {
                 videoShow2 = show;
-                console.log('✅ إعلان 431251 جاهز');
+                console.log('✅ إعلان 6113781 جاهز');
                 document.getElementById('adStatus').innerHTML = '✅ الإعلان الثاني جاهز';
             }).catch(e => {
-                console.log('❌ خطأ في إعلان 431251:', e);
+                console.log('❌ خطأ في إعلان 6113781:', e);
                 document.getElementById('adStatus').innerHTML = '❌ فشل تحميل الإعلان 2';
+            });
+            
+            window.initCdTma?.({ id: '6113782' }).then(show => {
+                videoShow3 = show;
+                console.log('✅ إعلان 6113782 جاهز');
+                document.getElementById('adStatus').innerHTML = '✅ الإعلان الثالث جاهز';
+            }).catch(e => {
+                console.log('❌ خطأ في إعلان 6113782:', e);
+                document.getElementById('adStatus').innerHTML = '❌ فشل تحميل الإعلان 3';
             });
             
             // التنقل بين الصفحات
@@ -940,7 +952,6 @@
             document.getElementById('referralEarned').textContent = referralEarned + ' نقطة';
         }
         
-        // دالة تعيين رابط الدعوة
         function setReferralLink() {
             if (userId) {
                 const link = `https://t.me/YourTapEarnBot?start=${userId}`;
@@ -970,6 +981,7 @@
             let showFunc = null;
             if (adNumber === 1) showFunc = videoShow1;
             else if (adNumber === 2) showFunc = videoShow2;
+            else if (adNumber === 3) showFunc = videoShow3;
             
             if (!showFunc) {
                 Swal.fire('❌', 'الإعلان لم يتم تحميله بعد، حاول مرة أخرى', 'error');
@@ -978,6 +990,7 @@
             
             document.getElementById('adBtn1').disabled = true;
             document.getElementById('adBtn2').disabled = true;
+            document.getElementById('adBtn3').disabled = true;
             countdownActive = true;
             currentAd = adNumber;
             adWatched = false;
@@ -1064,6 +1077,7 @@
         function resetAdButtons() {
             document.getElementById('adBtn1').disabled = false;
             document.getElementById('adBtn2').disabled = false;
+            document.getElementById('adBtn3').disabled = false;
             countdownActive = false;
         }
         
@@ -1339,4 +1353,4 @@
         }
     </script>
 </body>
-</html>
+    </html>
