@@ -750,7 +750,7 @@
             
             <div class="wallet-section">
                 <h3>🔗 رابط الدعوة الخاص بك</h3>
-                <!-- ✅ تم تحديث الرابط هنا لاسم البوت الصحيح -->
+                <!-- رابط الدعوة مع اسم البوت الصحيح -->
                 <div class="referral-link" id="referralLink">https://t.me/YourTapEarnBot?start=123456</div>
                 <button class="copy-btn" onclick="copyReferralLink()">📋 نسخ الرابط</button>
             </div>
@@ -823,16 +823,24 @@
                 if (userId) loadUserData();
             }
             
-            // تهيئة إعلانات OnClicka
+            // ✅ تهيئة إعلانات OnClicka بشكل صحيح
             window.initCdTma?.({ id: '431053' }).then(show => {
                 videoShow1 = show;
                 console.log('✅ إعلان 431053 جاهز');
-            }).catch(e => console.log('❌ خطأ في إعلان 431053:', e));
+                document.getElementById('adStatus').innerHTML = '✅ الإعلان الأول جاهز';
+            }).catch(e => {
+                console.log('❌ خطأ في إعلان 431053:', e);
+                document.getElementById('adStatus').innerHTML = '❌ فشل تحميل الإعلان 1';
+            });
             
             window.initCdTma?.({ id: '431251' }).then(show => {
                 videoShow2 = show;
                 console.log('✅ إعلان 431251 جاهز');
-            }).catch(e => console.log('❌ خطأ في إعلان 431251:', e));
+                document.getElementById('adStatus').innerHTML = '✅ الإعلان الثاني جاهز';
+            }).catch(e => {
+                console.log('❌ خطأ في إعلان 431251:', e);
+                document.getElementById('adStatus').innerHTML = '❌ فشل تحميل الإعلان 2';
+            });
             
             // التنقل بين الصفحات
             document.querySelectorAll('.nav-item').forEach(item => {
@@ -932,7 +940,7 @@
             document.getElementById('referralEarned').textContent = referralEarned + ' نقطة';
         }
         
-        // ✅ تم تحديث هذه الدالة لاستخدام اسم البوت الصحيح
+        // دالة تعيين رابط الدعوة
         function setReferralLink() {
             if (userId) {
                 const link = `https://t.me/YourTapEarnBot?start=${userId}`;
