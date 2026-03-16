@@ -1147,9 +1147,25 @@
             else if (adNumber === 3) showFunc = videoShow3;
             
             if (!showFunc) {
-                Swal.fire('❌', 'الإعلان لم يتم تحميله بعد، حاول مرة أخرى', 'error');
-                return;
-            }
+    // الإعلان مش جاهز - نحاول نشوف المشكلة
+    console.log('الإعلان', adNumber, 'غير جاهز');
+    // بدل ما نطلع خطأ، نحاول نشغل الإعلان تاني
+    if (adNumber === 1) videoShow1 = null;
+    else if (adNumber === 2) videoShow2 = null;
+    else if (adNumber === 3) videoShow3 = null;
+    
+    // نطلب إعادة التحميل
+    Swal.fire({
+        title: '❌ خطأ',
+        text: 'حدث خطأ في تشغيل الإعلان، حاول مرة أخرى',
+        icon: 'error',
+        confirmButtonText: 'حسناً'
+    }).then(() => {
+        // إعادة تحميل الإعلانات
+        if (typeof loadAds === 'function') loadAds();
+    });
+    return;
+                }
             
             document.getElementById('adBtn1').disabled = true;
             document.getElementById('adBtn2').disabled = true;
