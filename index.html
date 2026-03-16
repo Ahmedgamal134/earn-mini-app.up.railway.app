@@ -252,6 +252,12 @@
             background: linear-gradient(135deg, #ffd700, #ffa500);
         }
         
+        .btn-reload {
+            background: linear-gradient(135deg, #6b8cff, #4a6cf7);
+            color: white;
+            margin-top: 10px;
+        }
+        
         .timer-container {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 20px;
@@ -292,6 +298,26 @@
         
         .page.active {
             display: block;
+        }
+        
+        .status-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .status-success {
+            color: #4CAF50;
+        }
+        
+        .status-error {
+            color: #f44336;
+        }
+        
+        .status-warning {
+            color: #ffd700;
         }
         
         .wallet-section {
@@ -482,6 +508,43 @@
             font-weight: 600;
             margin-top: 10px;
         }
+        
+        .ad-status-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        
+        .ad-status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .ad-status-icon {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .ad-status-icon.ready {
+            background: #4CAF50;
+            box-shadow: 0 0 10px #4CAF50;
+        }
+        
+        .ad-status-icon.loading {
+            background: #ffd700;
+            box-shadow: 0 0 10px #ffd700;
+        }
+        
+        .ad-status-icon.error {
+            background: #f44336;
+            box-shadow: 0 0 10px #f44336;
+        }
     </style>
 </head>
 <body>
@@ -574,6 +637,22 @@
                 </div>
             </div>
             
+            <!-- حالة تحميل الإعلانات -->
+            <div class="ad-status-container" id="adStatusContainer">
+                <div class="ad-status-item">
+                    <div class="ad-status-icon loading" id="ad1StatusIcon"></div>
+                    <span>إعلان 1 (6113667): <span id="ad1StatusText">جاري التحميل...</span></span>
+                </div>
+                <div class="ad-status-item">
+                    <div class="ad-status-icon loading" id="ad2StatusIcon"></div>
+                    <span>إعلان 2 (6113781): <span id="ad2StatusText">جاري التحميل...</span></span>
+                </div>
+                <div class="ad-status-item">
+                    <div class="ad-status-icon loading" id="ad3StatusIcon"></div>
+                    <span>إعلان 3 (6113782): <span id="ad3StatusText">جاري التحميل...</span></span>
+                </div>
+            </div>
+            
             <div class="timer-container">
                 <div class="timer" id="timer">30</div>
                 <div class="progress-bar">
@@ -593,15 +672,20 @@
                 </button>
             </div>
             
+            <button class="btn btn-reload" id="reloadAdsBtn" onclick="reloadAds()">
+                <span>🔄</span> إعادة تحميل الإعلانات
+            </button>
+            
             <button class="btn btn-claim hidden" id="claimBtn" onclick="claimReward()">
                 <span>🎁</span> استلم نقطتك
             </button>
             
-            <div class="status" id="adStatus">
-                ⏳ اضغط لمشاهدة إعلان
+            <div class="status-box" id="adStatus">
+                ⏳ جاري تحميل الإعلانات...
             </div>
         </div>
         
+        <!-- باقي الصفحات (عجلة الحظ، المحفظة، الدعوة) كما هي -->
         <!-- صفحة عجلة الحظ -->
         <div id="wheelPage" class="page">
             <h2 style="text-align: center; margin-bottom: 10px;">🎡 عجلة الحظ</h2>
@@ -827,32 +911,7 @@
             }
             
             // تهيئة إعلانات OnClicka
-            window.initCdTma?.({ id: '6113667' }).then(show => {
-                videoShow1 = show;
-                console.log('✅ إعلان 6113667 جاهز');
-                document.getElementById('adStatus').innerHTML = '✅ الإعلان الأول جاهز';
-            }).catch(e => {
-                console.log('❌ خطأ في إعلان 6113667:', e);
-                document.getElementById('adStatus').innerHTML = '❌ فشل تحميل الإعلان 1';
-            });
-            
-            window.initCdTma?.({ id: '6113781' }).then(show => {
-                videoShow2 = show;
-                console.log('✅ إعلان 6113781 جاهز');
-                document.getElementById('adStatus').innerHTML = '✅ الإعلان الثاني جاهز';
-            }).catch(e => {
-                console.log('❌ خطأ في إعلان 6113781:', e);
-                document.getElementById('adStatus').innerHTML = '❌ فشل تحميل الإعلان 2';
-            });
-            
-            window.initCdTma?.({ id: '6113782' }).then(show => {
-                videoShow3 = show;
-                console.log('✅ إعلان 6113782 جاهز');
-                document.getElementById('adStatus').innerHTML = '✅ الإعلان الثالث جاهز';
-            }).catch(e => {
-                console.log('❌ خطأ في إعلان 6113782:', e);
-                document.getElementById('adStatus').innerHTML = '❌ فشل تحميل الإعلان 3';
-            });
+            loadAds();
             
             // التنقل بين الصفحات
             document.querySelectorAll('.nav-item').forEach(item => {
@@ -869,6 +928,110 @@
             // تعيين رابط الدعوة
             setReferralLink();
         });
+        
+        // =========== دوال الإعلانات ===========
+        function loadAds() {
+            // تحديث الحالة
+            document.getElementById('ad1StatusText').innerText = 'جاري التحميل...';
+            document.getElementById('ad2StatusText').innerText = 'جاري التحميل...';
+            document.getElementById('ad3StatusText').innerText = 'جاري التحميل...';
+            
+            // تهيئة الإعلان الأول
+            window.initCdTma?.({ id: '6113667' }).then(show => {
+                videoShow1 = show;
+                console.log('✅ إعلان 6113667 جاهز');
+                document.getElementById('ad1StatusIcon').className = 'ad-status-icon ready';
+                document.getElementById('ad1StatusText').innerText = 'جاهز';
+                document.getElementById('ad1StatusText').style.color = '#4CAF50';
+                updateOverallStatus();
+            }).catch(e => {
+                console.log('❌ خطأ في إعلان 6113667:', e);
+                document.getElementById('ad1StatusIcon').className = 'ad-status-icon error';
+                document.getElementById('ad1StatusText').innerHTML = '❌ فشل التحميل';
+                document.getElementById('ad1StatusText').style.color = '#f44336';
+                updateOverallStatus();
+            });
+            
+            // تهيئة الإعلان الثاني
+            window.initCdTma?.({ id: '6113781' }).then(show => {
+                videoShow2 = show;
+                console.log('✅ إعلان 6113781 جاهز');
+                document.getElementById('ad2StatusIcon').className = 'ad-status-icon ready';
+                document.getElementById('ad2StatusText').innerText = 'جاهز';
+                document.getElementById('ad2StatusText').style.color = '#4CAF50';
+                updateOverallStatus();
+            }).catch(e => {
+                console.log('❌ خطأ في إعلان 6113781:', e);
+                document.getElementById('ad2StatusIcon').className = 'ad-status-icon error';
+                document.getElementById('ad2StatusText').innerHTML = '❌ فشل التحميل';
+                document.getElementById('ad2StatusText').style.color = '#f44336';
+                updateOverallStatus();
+            });
+            
+            // تهيئة الإعلان الثالث
+            window.initCdTma?.({ id: '6113782' }).then(show => {
+                videoShow3 = show;
+                console.log('✅ إعلان 6113782 جاهز');
+                document.getElementById('ad3StatusIcon').className = 'ad-status-icon ready';
+                document.getElementById('ad3StatusText').innerText = 'جاهز';
+                document.getElementById('ad3StatusText').style.color = '#4CAF50';
+                updateOverallStatus();
+            }).catch(e => {
+                console.log('❌ خطأ في إعلان 6113782:', e);
+                document.getElementById('ad3StatusIcon').className = 'ad-status-icon error';
+                document.getElementById('ad3StatusText').innerHTML = '❌ فشل التحميل';
+                document.getElementById('ad3StatusText').style.color = '#f44336';
+                updateOverallStatus();
+            });
+        }
+        
+        function updateOverallStatus() {
+            const ad1Ready = videoShow1 !== null;
+            const ad2Ready = videoShow2 !== null;
+            const ad3Ready = videoShow3 !== null;
+            
+            if (ad1Ready || ad2Ready || ad3Ready) {
+                document.getElementById('adStatus').innerHTML = '✅ بعض الإعلانات جاهزة للمشاهدة';
+                document.getElementById('adStatus').style.color = '#4CAF50';
+            } else {
+                document.getElementById('adStatus').innerHTML = '⏳ جاري تحميل الإعلانات...';
+                document.getElementById('adStatus').style.color = '#ffd700';
+            }
+        }
+        
+        function reloadAds() {
+            Swal.fire({
+                title: 'جاري إعادة التحميل',
+                text: 'يتم إعادة تحميل الإعلانات...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // إعادة تعيين المتغيرات
+            videoShow1 = null;
+            videoShow2 = null;
+            videoShow3 = null;
+            
+            // إعادة تعيين الحالة
+            document.getElementById('ad1StatusIcon').className = 'ad-status-icon loading';
+            document.getElementById('ad1StatusText').innerText = 'جاري التحميل...';
+            document.getElementById('ad1StatusText').style.color = 'white';
+            document.getElementById('ad2StatusIcon').className = 'ad-status-icon loading';
+            document.getElementById('ad2StatusText').innerText = 'جاري التحميل...';
+            document.getElementById('ad2StatusText').style.color = 'white';
+            document.getElementById('ad3StatusIcon').className = 'ad-status-icon loading';
+            document.getElementById('ad3StatusText').innerText = 'جاري التحميل...';
+            document.getElementById('ad3StatusText').style.color = 'white';
+            
+            // إعادة التحميل
+            loadAds();
+            
+            setTimeout(() => {
+                Swal.close();
+            }, 2000);
+        }
         
         // =========== دوال التنقل ===========
         function navigateTo(page) {
@@ -991,17 +1154,20 @@
             document.getElementById('adBtn1').disabled = true;
             document.getElementById('adBtn2').disabled = true;
             document.getElementById('adBtn3').disabled = true;
+            document.getElementById('reloadAdsBtn').disabled = true;
             countdownActive = true;
             currentAd = adNumber;
             adWatched = false;
             
             document.getElementById('adStatus').innerHTML = '📺 يتم تشغيل الإعلان... انتظر 30 ثانية';
+            document.getElementById('adStatus').style.color = '#ffd700';
             
             showFunc().then(() => {
                 startCountdown();
             }).catch(e => {
                 console.log('❌ خطأ في تشغيل الإعلان:', e);
                 document.getElementById('adStatus').innerHTML = '❌ حدث خطأ في تشغيل الإعلان';
+                document.getElementById('adStatus').style.color = '#f44336';
                 resetAdButtons();
             });
         }
@@ -1028,6 +1194,7 @@
                     adWatched = true;
                     
                     document.getElementById('adStatus').innerHTML = '✅ تمت المشاهدة! اضغط على استلام نقطتك';
+                    document.getElementById('adStatus').style.color = '#4CAF50';
                     document.getElementById('claimBtn').classList.remove('hidden');
                 }
             }, 1000);
@@ -1054,6 +1221,7 @@
                     
                     document.getElementById('claimBtn').classList.add('hidden');
                     document.getElementById('adStatus').innerHTML = '✅ تم إضافة نقطة!';
+                    document.getElementById('adStatus').style.color = '#4CAF50';
                     resetAdButtons();
                     
                     Swal.fire('🎁', 'تم إضافة نقطة إلى رصيدك', 'success');
@@ -1066,6 +1234,7 @@
                 
                 document.getElementById('claimBtn').classList.add('hidden');
                 document.getElementById('adStatus').innerHTML = '✅ تم إضافة نقطة!';
+                document.getElementById('adStatus').style.color = '#4CAF50';
                 resetAdButtons();
                 
                 Swal.fire('🎁', 'تم إضافة نقطة إلى رصيدك', 'success');
@@ -1078,6 +1247,7 @@
             document.getElementById('adBtn1').disabled = false;
             document.getElementById('adBtn2').disabled = false;
             document.getElementById('adBtn3').disabled = false;
+            document.getElementById('reloadAdsBtn').disabled = false;
             countdownActive = false;
         }
         
