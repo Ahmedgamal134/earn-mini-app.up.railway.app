@@ -162,7 +162,7 @@
             opacity: 0.7;
         }
         
-        /* صفحة عجلة الحظ الجديدة (WinWheel) */
+        /* صفحة عجلة الحظ */
         .wheel-page {
             text-align: center;
         }
@@ -464,7 +464,7 @@
             </div>
         </div>
         
-        <!-- صفحة عجلة الحظ الجديدة (WinWheel) -->
+        <!-- صفحة عجلة الحظ -->
         <div id="wheelPage" class="page">
             <h2 style="text-align: center;">🎡 عجلة الحظ</h2>
             
@@ -578,6 +578,12 @@
         }
         updateUI();
         
+        // =========== دوال بسيطة ===========
+        function dailyCheckin() { totalPoints += 5; updateUI(); alert('✅ تم التسجيل! +5 نقاط'); }
+        function inviteFriend() { window.open(`https://t.me/share/url?url=https://t.me/YourTapEarnBot?start=invite_${userIdEl.textContent}`, '_blank'); alert('👥 سيتم إضافة 80 نقطة بعد تسجيل الصديق.'); }
+        function selectWallet(w) { alert(`✅ تم اختيار ${w}`); }
+        function logout() { if(confirm('تسجيل خروج؟')) localStorage.clear(), window.location.reload(); }
+        
         // =========== عجلة الحظ باستخدام WinWheel.js ===========
         let theWheel = null;
         
@@ -628,12 +634,6 @@
             
             isSpinning = false; spinBtn.disabled = false;
         }
-        
-        // =========== دوال أخرى مختصرة ===========
-        function dailyCheckin() { alert('✅ تم التسجيل! +5 نقاط'); totalPoints += 5; updateUI(); }
-        function inviteFriend() { window.open(`https://t.me/share/url?url=https://t.me/YourTapEarnBot?start=invite_${userIdEl.textContent}`, '_blank'); alert('👥 سيتم إضافة 80 نقطة بعد تسجيل الصديق.'); }
-        function selectWallet(w) { alert(`✅ تم اختيار ${w}`); }
-        function logout() { if(confirm('تسجيل خروج؟')) localStorage.clear(), window.location.reload(); }
         
         // =========== إعلانات (محاكاة) ===========
         let videoShow1 = true, videoShow2 = true, videoShow3 = true, adWatched = false, timerInterval = null, timeLeft = 30, countdownActive = false;
