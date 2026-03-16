@@ -3,13 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>بوت الربح الذكي - التطبيق المصغر</title>
+    <title>بوت الربح الذكي - عجلة الحظ</title>
     
     <!-- مكتبة Telegram WebApp -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <!-- مكتبات OnClickA للإعلانات -->
-    <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
     
     <style>
         * {
@@ -25,143 +22,35 @@
             color: white;
         }
         
-        .navbar {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: rgba(20, 20, 40, 0.95);
-            backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 1000;
-        }
-        
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 4px 12px;
-            border-radius: 20px;
-        }
-        
-        .nav-item.active {
-            color: #ffd700;
-            background: rgba(255, 215, 0, 0.1);
-        }
-        
-        .nav-item i {
-            font-size: 24px;
-            margin-bottom: 4px;
-        }
-        
         .content {
-            padding: 20px 16px 80px 16px;
+            padding: 20px 16px;
             max-width: 480px;
             margin: 0 auto;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         
         .balance-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
             border-radius: 24px;
-            padding: 24px;
+            padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .balance-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        
-        .balance-title {
-            font-size: 16px;
-            opacity: 0.9;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .balance-amount {
-            font-size: 32px;
+            font-size: 48px;
             font-weight: 700;
             color: #ffd700;
-        }
-        
-        .balance-label {
-            font-size: 14px;
-            opacity: 0.7;
-        }
-        
-        .stats-row {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .stat-box {
-            text-align: center;
-            flex: 1;
-        }
-        
-        .stat-value {
-            font-size: 20px;
-            font-weight: 600;
-            color: #ffd700;
-        }
-        
-        .stat-label {
-            font-size: 12px;
-            opacity: 0.7;
-        }
-        
-        .section-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin: 20px 0;
-        }
-        
-        .section-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .section-card:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .section-icon {
-            font-size: 32px;
-            margin-bottom: 12px;
-        }
-        
-        .section-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        
-        .section-subtitle {
-            font-size: 12px;
-            opacity: 0.7;
-        }
-        
-        .wheel-page {
-            text-align: center;
+            margin: 10px 0;
         }
         
         .wheel-container {
@@ -175,7 +64,7 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
             transition: transform 4s cubic-bezier(0.25, 0.1, 0.15, 1);
         }
         
@@ -190,9 +79,10 @@
             border-right: 20px solid transparent;
             border-top: 30px solid #ffd700;
             z-index: 10;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
         }
         
-        .wheel-stats {
+        .stats {
             display: flex;
             justify-content: space-around;
             margin: 20px 0;
@@ -201,17 +91,17 @@
             padding: 16px;
         }
         
-        .wheel-stat {
+        .stat {
             text-align: center;
         }
         
-        .wheel-stat-value {
+        .stat-value {
             font-size: 24px;
             font-weight: 700;
             color: #ffd700;
         }
         
-        .wheel-stat-label {
+        .stat-label {
             font-size: 12px;
             opacity: 0.7;
         }
@@ -228,16 +118,12 @@
             cursor: pointer;
             box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
             transition: all 0.3s ease;
+            width: 100%;
         }
         
         .spin-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-        }
-        
-        .spin-btn.secondary {
-            background: linear-gradient(135deg, #6b8cff, #4a6cf7);
-            color: white;
         }
         
         .prize-message {
@@ -247,456 +133,89 @@
             padding: 16px;
             margin: 20px 0;
             text-align: center;
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .ad-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin: 20px 0;
-        }
-        
-        .btn {
-            border: none;
-            border-radius: 50px;
-            padding: 16px 24px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            color: #333;
-            background: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        
-        .btn-video1 {
-            background: linear-gradient(135deg, #ffd700, #ffa500);
-        }
-        
-        .btn-video2 {
-            background: linear-gradient(135deg, #ffaa00, #ff6600);
-        }
-        
-        .btn-video3 {
-            background: linear-gradient(135deg, #ff6600, #ff3300);
-        }
-        
-        .timer-container {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        .timer {
-            font-size: 48px;
+            font-size: 24px;
             font-weight: 700;
+        }
+        
+        .prize-message.hidden {
+            display: none;
+        }
+        
+        .prize-message span {
             color: #ffd700;
-            margin-bottom: 10px;
         }
         
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ffd700, #ffa500);
-            width: 100%;
-            transition: width 1s linear;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        .status {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 16px;
-            margin-top: 20px;
-            text-align: center;
-        }
-        
-        .page {
-            display: none;
-        }
-        
-        .page.active {
-            display: block;
-        }
-        
-        .wallet-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+        .prizes-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
             margin: 20px 0;
         }
         
-        .wallet-item {
-            background: linear-gradient(135deg, #4a6cf7, #6b8cff);
-            border-radius: 16px;
-            padding: 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .wallet-item:hover {
-            transform: scale(1.05);
-        }
-        
-        .wallet-icon {
-            font-size: 32px;
-            margin-bottom: 8px;
-        }
-        
-        .wallet-name {
-            font-size: 14px;
+        .prize-item {
+            padding: 8px 16px;
+            border-radius: 20px;
             font-weight: 600;
         }
     </style>
 </head>
 <body>
-    <!-- شريط التنقل السفلي -->
-    <div class="navbar">
-        <div class="nav-item active" data-page="home">
-            <i>🏠</i>
-            <span>الرئيسية</span>
-        </div>
-        <div class="nav-item" data-page="wheel">
-            <i>🎡</i>
-            <span>العجلة</span>
-        </div>
-        <div class="nav-item" data-page="ads">
-            <i>📺</i>
-            <span>إعلانات</span>
-        </div>
-        <div class="nav-item" data-page="profile">
-            <i>👤</i>
-            <span>حسابي</span>
-        </div>
-    </div>
-    
     <div class="content">
-        <!-- الصفحة الرئيسية -->
-        <div id="homePage" class="page active">
-            <div class="balance-card">
-                <div class="balance-header">
-                    <span class="balance-title">رصيدك الحالي</span>
-                    <span class="balance-label">💰 نقاط</span>
-                </div>
-                <div class="balance-amount" id="totalPoints">0</div>
-                
-                <div class="stats-row">
-                    <div class="stat-box">
-                        <div class="stat-value" id="todayCount">0</div>
-                        <div class="stat-label">إعلانات اليوم</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="streakCount">0</div>
-                        <div class="stat-label">أيام متتالية</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="invitesCount">0</div>
-                        <div class="stat-label">دعوات</div>
-                    </div>
-                </div>
+        <h1>🎡 عجلة الحظ</h1>
+        
+        <div class="balance-card">
+            <div style="opacity: 0.8;">رصيدك الحالي</div>
+            <div class="balance-amount" id="totalPoints">0</div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="wheelBalance">0</div>
+                <div class="stat-label">نقاطك</div>
             </div>
-            
-            <div class="section-grid">
-                <div class="section-card" onclick="navigateTo('ads')">
-                    <div class="section-icon">📺</div>
-                    <div class="section-title">مشاهدة إعلان</div>
-                    <div class="section-subtitle">اكسب نقاط</div>
-                </div>
-                <div class="section-card" onclick="navigateTo('wheel')">
-                    <div class="section-icon">🎡</div>
-                    <div class="section-title">عجلة الحظ</div>
-                    <div class="section-subtitle">20 نقطة للعب</div>
-                </div>
-                <div class="section-card" onclick="dailyCheckin()">
-                    <div class="section-icon">✅</div>
-                    <div class="section-title">تسجيل يومي</div>
-                    <div class="section-subtitle">+5 نقاط</div>
-                </div>
-                <div class="section-card" onclick="inviteFriend()">
-                    <div class="section-icon">👥</div>
-                    <div class="section-title">دعوة صديق</div>
-                    <div class="section-subtitle">+80 نقطة</div>
-                </div>
+            <div class="stat">
+                <div class="stat-value" id="wheelCost">20</div>
+                <div class="stat-label">تكلفة اللعب</div>
             </div>
         </div>
         
-        <!-- صفحة عجلة الحظ المحسّنة -->
-        <div id="wheelPage" class="page">
-            <h2 style="text-align: center; margin-bottom: 10px;">🎡 عجلة الحظ</h2>
-            
-            <div class="wheel-stats">
-                <div class="wheel-stat">
-                    <div class="wheel-stat-value" id="wheelBalance">0</div>
-                    <div class="wheel-stat-label">نقاطك</div>
-                </div>
-                <div class="wheel-stat">
-                    <div class="wheel-stat-value" id="wheelCost">20</div>
-                    <div class="wheel-stat-label">تكلفة اللعب</div>
-                </div>
-            </div>
-            
-            <div class="wheel-container">
-                <canvas id="wheelCanvas" width="280" height="280"></canvas>
-                <div class="pointer"></div>
-            </div>
-            
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button class="spin-btn" id="spinBtn" onclick="spinWheel()">🎲 ابدأ الدوران (20)</button>
-                <button class="spin-btn secondary" id="watchAdSpinBtn" onclick="spinWithAd()">📺 إعلان و العب مجاناً</button>
-            </div>
-            
-            <div id="wheelResult" class="prize-message hidden">
-                🎉 حصلت على 0 نقطة!
-            </div>
-            
-            <div style="background: rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-top: 20px;">
-                <h3 style="margin-bottom: 12px;">🎁 الجوائز المتاحة</h3>
-                <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                    <span style="background: #FF6B6B; padding: 8px 16px; border-radius: 20px;">0 ⭐</span>
-                    <span style="background: #4ECDC4; padding: 8px 16px; border-radius: 20px;">5 نقطة</span>
-                    <span style="background: #45B7D1; padding: 8px 16px; border-radius: 20px;">10 نقطة</span>
-                    <span style="background: #96CEB4; padding: 8px 16px; border-radius: 20px;">15 نقطة</span>
-                    <span style="background: #FFE194; padding: 8px 16px; border-radius: 20px;">25 نقطة</span>
-                    <span style="background: #B8A9C9; padding: 8px 16px; border-radius: 20px;">50 نقطة</span>
-                    <span style="background: #FFD700; padding: 8px 16px; border-radius: 20px;">80 نقطة</span>
-                </div>
-            </div>
+        <div class="wheel-container">
+            <canvas id="wheelCanvas" width="280" height="280"></canvas>
+            <div class="pointer"></div>
         </div>
         
-        <!-- صفحة الإعلانات المحسّنة -->
-        <div id="adsPage" class="page">
-            <h2 style="text-align: center; margin-bottom: 20px;">📺 مشاهدة إعلانات</h2>
-            
-            <div class="timer-container">
-                <div class="timer" id="timer">30</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress" style="width: 100%"></div>
-                </div>
-            </div>
-            
-            <div class="ad-buttons">
-                <button class="btn btn-video1" id="videoAdBtn1" onclick="tryAd(1)">
-                    <span>▶️</span> إعلان رقم 1 - انقر للمشاهدة
-                </button>
-                <button class="btn btn-video2" id="videoAdBtn2" onclick="tryAd(2)">
-                    <span>▶️</span> إعلان رقم 2 - انقر للمشاهدة
-                </button>
-                <button class="btn btn-video3" id="videoAdBtn3" onclick="tryAd(3)">
-                    <span>▶️</span> إعلان رقم 3 - انقر للمشاهدة
-                </button>
-            </div>
-            
-            <button class="btn btn-claim hidden" id="claimBtn" onclick="claimReward()">
-                <span>🎁</span> استلم نقاطك
-            </button>
-            
-            <div class="status" id="status">
-                ⏳ اختر إعلاناً للمشاهدة
-            </div>
+        <button class="spin-btn" id="spinBtn" onclick="spinWheel()">🎲 ابدأ الدوران (20 نقطة)</button>
+        
+        <div id="prizeMessage" class="prize-message hidden">
+            🎉 <span id="prizeAmount">0</span> نقطة!
         </div>
         
-        <!-- صفحة الحساب والمحافظ -->
-        <div id="profilePage" class="page">
-            <h2 style="text-align: center; margin-bottom: 20px;">👤 حسابي</h2>
-            
-            <div class="settings-list">
-                <div class="setting-item">
-                    <span>🆔 معرف المستخدم</span>
-                    <span id="userId">...</span>
-                </div>
-                <div class="setting-item">
-                    <span>💰 الرصيد الحالي</span>
-                    <span id="profilePoints">0</span>
-                </div>
-                <div class="setting-item">
-                    <span>🎁 إجمالي الأرباح</span>
-                    <span id="totalEarned">0</span>
-                </div>
-            </div>
-            
-            <h3 style="margin: 20px 0 10px;">💳 المحافظ الإلكترونية</h3>
-            
-            <div class="wallet-grid">
-                <div class="wallet-item" onclick="selectWallet('vodafone')">
-                    <div class="wallet-icon">📱</div>
-                    <div class="wallet-name">فودافون كاش</div>
-                </div>
-                <div class="wallet-item" onclick="selectWallet('orange')">
-                    <div class="wallet-icon">🟠</div>
-                    <div class="wallet-name">أورانج كاش</div>
-                </div>
-                <div class="wallet-item" onclick="selectWallet('etisalat')">
-                    <div class="wallet-icon">📞</div>
-                    <div class="wallet-name">اتصالات كاش</div>
-                </div>
-                <div class="wallet-item" onclick="selectWallet('we')">
-                    <div class="wallet-icon">💳</div>
-                    <div class="wallet-name">وي كاش</div>
-                </div>
-                <div class="wallet-item" onclick="selectWallet('instapay')">
-                    <div class="wallet-icon">⚡</div>
-                    <div class="wallet-name">إنستا باي</div>
-                </div>
-                <div class="wallet-item" onclick="selectWallet('paypal')">
-                    <div class="wallet-icon">🌐</div>
-                    <div class="wallet-name">PayPal</div>
-                </div>
-            </div>
-            
-            <div style="margin-top: 20px; text-align: center;">
-                <button class="btn" style="background: linear-gradient(135deg, #f44336, #d32f2f); color: white;" onclick="logout()">
-                    🚪 تسجيل الخروج
-                </button>
-            </div>
-        </div>
+        <div class="prizes-grid" id="prizesGrid"></div>
     </div>
     
     <script>
         // =========== بيانات المستخدم (مخزنة محلياً) ===========
-        let totalPoints = 0;
-        let todayAds = 0;
-        let streak = 0;
-        let maxAds = 400;
+        let totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
         
         // عناصر HTML
         const totalPointsEl = document.getElementById('totalPoints');
-        const todayCountEl = document.getElementById('todayCount');
-        const streakCountEl = document.getElementById('streakCount');
-        const invitesCountEl = document.getElementById('invitesCount');
         const wheelBalanceEl = document.getElementById('wheelBalance');
-        const profilePointsEl = document.getElementById('profilePoints');
-        const totalEarnedEl = document.getElementById('totalEarned');
-        const userIdEl = document.getElementById('userId');
-        const timerEl = document.getElementById('timer');
-        const progressEl = document.getElementById('progress');
-        const statusEl = document.getElementById('status');
-        const claimBtn = document.getElementById('claimBtn');
-        const videoAdBtn1 = document.getElementById('videoAdBtn1');
-        const videoAdBtn2 = document.getElementById('videoAdBtn2');
-        const videoAdBtn3 = document.getElementById('videoAdBtn3');
         const spinBtn = document.getElementById('spinBtn');
-        const watchAdSpinBtn = document.getElementById('watchAdSpinBtn');
-        const wheelResultEl = document.getElementById('wheelResult');
-        
-        // تحميل البيانات من التخزين المحلي
-        function loadData() {
-            totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
-            todayAds = parseInt(localStorage.getItem('todayAds') || '0');
-            streak = parseInt(localStorage.getItem('streak') || '0');
-            updateUI();
-        }
-        
-        function updateUI() {
-            totalPointsEl.textContent = totalPoints;
-            todayCountEl.textContent = todayAds;
-            streakCountEl.textContent = streak;
-            invitesCountEl.textContent = 0;
-            if (wheelBalanceEl) wheelBalanceEl.textContent = totalPoints;
-            if (profilePointsEl) profilePointsEl.textContent = totalPoints + ' نقطة';
-            if (totalEarnedEl) totalEarnedEl.textContent = totalPoints + ' نقطة';
-            
-            localStorage.setItem('totalPoints', totalPoints.toString());
-            localStorage.setItem('todayAds', todayAds.toString());
-            localStorage.setItem('streak', streak.toString());
-        }
-        
-        // الحصول على معرف المستخدم
-        if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user) {
-            const tgUser = Telegram.WebApp.initDataUnsafe.user;
-            if (userIdEl) userIdEl.textContent = tgUser.id;
-        } else {
-            if (userIdEl) userIdEl.textContent = '123456';
-        }
-        
-        loadData();
-        
-        // =========== التنقل بين الصفحات ===========
-        const pages = {
-            home: document.getElementById('homePage'),
-            wheel: document.getElementById('wheelPage'),
-            ads: document.getElementById('adsPage'),
-            profile: document.getElementById('profilePage')
-        };
-        
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-                item.classList.add('active');
-                navigateTo(item.dataset.page);
-            });
-        });
-        
-        function navigateTo(pageName) {
-            Object.values(pages).forEach(page => page.classList.remove('active'));
-            pages[pageName].classList.add('active');
-        }
-        
-        // =========== تسجيل يومي ===========
-        function dailyCheckin() {
-            const today = new Date().toDateString();
-            const lastCheckin = localStorage.getItem('lastCheckin');
-            
-            if (lastCheckin === today) {
-                alert('✅ لقد سجلت حضورك اليوم بالفعل!');
-                return;
-            }
-            
-            localStorage.setItem('lastCheckin', today);
-            streak++;
-            totalPoints += 5;
-            updateUI();
-            alert('✅ تم التسجيل! +5 نقاط');
-        }
-        
-        // =========== دعوة صديق ===========
-        function inviteFriend() {
-            const userId = userIdEl.textContent;
-            const inviteLink = `https://t.me/share/url?url=https://t.me/YourTapEarnBot?start=invite_${userId}&text=🎁 انضم إلي في بوت الربح الذكي واكسب نقاط!`;
-            window.open(inviteLink, '_blank');
-            alert('👥 سيتم إضافة 80 نقطة بعد تسجيل الصديق.');
-        }
-        
-        // =========== اختيار المحفظة ===========
-        function selectWallet(wallet) {
-            const walletNames = {
-                'vodafone': 'فودافون كاش',
-                'orange': 'أورانج كاش',
-                'etisalat': 'اتصالات كاش',
-                'we': 'وي كاش',
-                'instapay': 'إنستا باي',
-                'paypal': 'PayPal'
-            };
-            alert(`✅ تم اختيار ${walletNames[wallet]}. سيتم إتمام عملية السحب قريباً.`);
-        }
-        
-        // =========== عجلة الحظ المحسّنة ===========
+        const prizeMessage = document.getElementById('prizeMessage');
+        const prizeAmount = document.getElementById('prizeAmount');
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
         
+        // تحديث الرصيد في الواجهة
+        function updateUI() {
+            totalPointsEl.textContent = totalPoints;
+            if (wheelBalanceEl) wheelBalanceEl.textContent = totalPoints;
+            localStorage.setItem('totalPoints', totalPoints.toString());
+        }
+        updateUI();
+        
+        // =========== عجلة الحظ (7 قطاعات) ===========
         const segments = [
             { color: '#FF6B6B', label: '0', value: 0 },
             { color: '#4ECDC4', label: '5', value: 5 },
@@ -707,9 +226,18 @@
             { color: '#FFD700', label: '80', value: 80 }
         ];
         
-        let isSpinning = false;
-        let currentRotation = 0;
+        // رسم الجوائز في الأسفل
+        const prizesGrid = document.getElementById('prizesGrid');
+        segments.forEach(seg => {
+            const item = document.createElement('span');
+            item.className = 'prize-item';
+            item.style.background = seg.color;
+            item.style.color = '#000';
+            item.textContent = seg.label + ' نقطة';
+            prizesGrid.appendChild(item);
+        });
         
+        // رسم العجلة
         function drawWheel() {
             const angleStep = (Math.PI * 2) / segments.length;
             ctx.clearRect(0, 0, 280, 280);
@@ -718,6 +246,7 @@
                 const startAngle = index * angleStep;
                 const endAngle = startAngle + angleStep;
                 
+                // رسم القطاع
                 ctx.beginPath();
                 ctx.fillStyle = seg.color;
                 ctx.moveTo(140, 140);
@@ -725,183 +254,77 @@
                 ctx.closePath();
                 ctx.fill();
                 
+                // كتابة القيمة
                 ctx.save();
                 ctx.translate(140, 140);
                 ctx.rotate(startAngle + angleStep / 2);
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#000';
-                ctx.font = 'bold 16px Arial';
-                ctx.fillText(seg.label, 70, 0);
+                ctx.font = 'bold 18px Arial';
+                ctx.fillText(seg.label, 80, 0);
                 ctx.restore();
             });
         }
         drawWheel();
         
+        let isSpinning = false;
+        let currentRotation = 0;
+        
+        // حساب الجائزة بدقة 100%
         function calculatePrize(finalAngle) {
-            const rawAngle = (finalAngle % 360 + 360) % 360;
-            const pointerAngle = (rawAngle + 90) % 360;
+            // تطبيع الزاوية بين 0 و 360
+            const normalizedAngle = ((finalAngle % 360) + 360) % 360;
+            
+            // زاوية المؤشر (في أعلى 90 درجة)
+            const pointerAngle = (normalizedAngle + 90) % 360;
+            
+            // حجم القطاع
             const segmentAngle = 360 / segments.length;
+            
+            // حساب رقم القطاع (0-based)
             const index = Math.floor(pointerAngle / segmentAngle) % segments.length;
+            
             return segments[index];
         }
         
         function spinWheel() {
             if (isSpinning) return;
+            
             if (totalPoints < 20) {
                 alert('❌ رصيدك غير كافٍ! تحتاج 20 نقطة للعب');
                 return;
             }
             
+            // خصم النقاط
             totalPoints -= 20;
             updateUI();
-            startSpin();
-        }
-        
-        function spinWithAd() {
-            if (isSpinning) return;
-            tryAd(1);
-        }
-        
-        function startSpin() {
+            
             isSpinning = true;
             spinBtn.disabled = true;
-            watchAdSpinBtn.disabled = true;
-            wheelResultEl.classList.add('hidden');
+            prizeMessage.classList.add('hidden');
             
+            // دوران عشوائي (5-8 لفات)
             const spinAngle = Math.random() * 1080 + 1800;
             currentRotation += spinAngle;
+            
             canvas.style.transform = `rotate(${currentRotation}deg)`;
             
+            // بعد انتهاء الدوران
             setTimeout(() => {
                 const prize = calculatePrize(currentRotation);
                 
                 totalPoints += prize.value;
                 updateUI();
                 
-                wheelResultEl.classList.remove('hidden');
-                wheelResultEl.innerHTML = `🎉 حصلت على ${prize.value} نقطة!`;
+                prizeAmount.textContent = prize.value;
+                prizeMessage.classList.remove('hidden');
                 
                 setTimeout(() => {
-                    wheelResultEl.classList.add('hidden');
                     isSpinning = false;
                     spinBtn.disabled = false;
-                    watchAdSpinBtn.disabled = false;
-                }, 3000);
+                }, 2000);
                 
             }, 4000);
-        }
-        
-        // =========== إعدادات OnClickA ===========
-        let videoShow1 = null;
-        let videoShow2 = null;
-        let videoShow3 = null;
-        let currentAd = null;
-        let adWatched = false;
-        let timerInterval = null;
-        let timeLeft = 30;
-        let countdownActive = false;
-        
-        window.initCdTma?.({ id: '6113667' }).then(show => videoShow1 = show).catch(() => {});
-        window.initCdTma?.({ id: '6113781' }).then(show => videoShow2 = show).catch(() => {});
-        window.initCdTma?.({ id: '6113782' }).then(show => videoShow3 = show).catch(() => {});
-        
-        function tryAd(num) {
-            if (countdownActive) {
-                alert('⏳ يوجد إعلان قيد المشاهدة حالياً');
-                return;
-            }
-            
-            if (todayAds >= maxAds) {
-                alert(`❌ لقد استنفدت حد الإعلانات اليومي (${maxAds} إعلان)`);
-                return;
-            }
-            
-            let showFunc = num === 1 ? videoShow1 : num === 2 ? videoShow2 : videoShow3;
-            
-            if (!showFunc) {
-                alert(`⚠️ الإعلان ${num} غير متاح حالياً.`);
-                return;
-            }
-            
-            videoAdBtn1.disabled = true;
-            videoAdBtn2.disabled = true;
-            videoAdBtn3.disabled = true;
-            countdownActive = true;
-            currentAd = num;
-            adWatched = false;
-            
-            showFunc()
-                .then(() => {
-                    statusEl.innerHTML = '📺 يتم تشغيل الإعلان...';
-                    startCountdown();
-                })
-                .catch(() => {
-                    statusEl.innerHTML = '❌ حدث خطأ';
-                    resetButtons();
-                });
-        }
-        
-        function startCountdown() {
-            timeLeft = 30;
-            timerEl.textContent = timeLeft;
-            progressEl.style.width = '100%';
-            
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                timerEl.textContent = timeLeft;
-                
-                let progressPercent = (timeLeft / 30) * 100;
-                progressEl.style.width = progressPercent + '%';
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    timerEl.textContent = '0';
-                    progressEl.style.width = '0%';
-                    countdownActive = false;
-                    adWatched = true;
-                    
-                    statusEl.innerHTML = '✅ تمت المشاهدة! اضغط استلام النقاط';
-                    claimBtn.classList.remove('hidden');
-                    
-                    videoAdBtn1.disabled = false;
-                    videoAdBtn2.disabled = false;
-                    videoAdBtn3.disabled = false;
-                }
-            }, 1000);
-        }
-        
-        function claimReward() {
-            if (!adWatched) {
-                alert('❌ يجب مشاهدة الإعلان أولاً!');
-                return;
-            }
-            
-            totalPoints++;
-            todayAds++;
-            updateUI();
-            
-            claimBtn.classList.add('hidden');
-            statusEl.innerHTML = '✅ تم إضافة نقطة!';
-            
-            adWatched = false;
-            currentAd = null;
-            videoAdBtn1.disabled = false;
-            videoAdBtn2.disabled = false;
-            videoAdBtn3.disabled = false;
-        }
-        
-        function resetButtons() {
-            videoAdBtn1.disabled = false;
-            videoAdBtn2.disabled = false;
-            videoAdBtn3.disabled = false;
-            countdownActive = false;
-        }
-        
-        function logout() {
-            if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
-                localStorage.clear();
-                window.location.reload();
-            }
         }
     </script>
 </body>
