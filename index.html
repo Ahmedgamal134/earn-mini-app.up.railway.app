@@ -1,54 +1,1546 @@
-function loadAds() {
-    // تحديث الحالة
-    document.getElementById('ad1StatusText').innerText = 'جاري التحميل...';
-    document.getElementById('ad2StatusText').innerText = 'جاري التحميل...';
-    document.getElementById('ad3StatusText').innerText = 'جاري التحميل...';
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بوت الربح الذكي - الموقع الرسمي</title>
     
-    // تهيئة الإعلان الأول
-    window.initCdTma?.({ id: '6113667' }).then(show => {
-        videoShow1 = show;
-        console.log('✅ إعلان 6113667 جاهز');
-        document.getElementById('ad1StatusIcon').className = 'ad-status-icon ready';
-        document.getElementById('ad1StatusText').innerText = 'جاهز';
-        document.getElementById('ad1StatusText').style.color = '#4CAF50';
-        updateOverallStatus();
-    }).catch(e => {
-        console.log('❌ خطأ في إعلان 6113667:', e);
-        document.getElementById('ad1StatusIcon').className = 'ad-status-icon error';
-        document.getElementById('ad1StatusText').innerHTML = '❌ فشل التحميل';
-        document.getElementById('ad1StatusText').style.color = '#f44336';
-        updateOverallStatus();
-    });
+    <!-- مكتبة OnClicka للإعلانات -->
+    <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
     
-    // تهيئة الإعلان الثاني
-    window.initCdTma?.({ id: '6113781' }).then(show => {
-        videoShow2 = show;
-        console.log('✅ إعلان 6113781 جاهز');
-        document.getElementById('ad2StatusIcon').className = 'ad-status-icon ready';
-        document.getElementById('ad2StatusText').innerText = 'جاهز';
-        document.getElementById('ad2StatusText').style.color = '#4CAF50';
-        updateOverallStatus();
-    }).catch(e => {
-        console.log('❌ خطأ في إعلان 6113781:', e);
-        document.getElementById('ad2StatusIcon').className = 'ad-status-icon error';
-        document.getElementById('ad2StatusText').innerHTML = '❌ فشل التحميل';
-        document.getElementById('ad2StatusText').style.color = '#f44336';
-        updateOverallStatus();
-    });
+    <!-- SweetAlert للإشعارات الجميلة -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    // تهيئة الإعلان الثالث
-    window.initCdTma?.({ id: '6113782' }).then(show => {
-        videoShow3 = show;
-        console.log('✅ إعلان 6113782 جاهز');
-        document.getElementById('ad3StatusIcon').className = 'ad-status-icon ready';
-        document.getElementById('ad3StatusText').innerText = 'جاهز';
-        document.getElementById('ad3StatusText').style.color = '#4CAF50';
-        updateOverallStatus();
-    }).catch(e => {
-        console.log('❌ خطأ في إعلان 6113782:', e);
-        document.getElementById('ad3StatusIcon').className = 'ad-status-icon error';
-        document.getElementById('ad3StatusText').innerHTML = '❌ فشل التحميل';
-        document.getElementById('ad3StatusText').style.color = '#f44336';
-        updateOverallStatus();
-    });
-}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(145deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .navbar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: rgba(20, 20, 40, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        
+        .nav-item.active {
+            color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .nav-item i {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        
+        .content {
+            padding: 20px 16px 80px 16px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        
+        .balance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .balance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .balance-title {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .balance-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ffd700;
+        }
+        
+        .balance-label {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-box {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffd700;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .section-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .section-card:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .section-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .section-subtitle {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        .wheel-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 20px auto;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            transition: transform 4s cubic-bezier(0.25, 0.1, 0.15, 1);
+        }
+        
+        .pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 30px solid #ffd700;
+            z-index: 10;
+        }
+        
+        .spin-btn {
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            border: none;
+            color: #333;
+            font-weight: 700;
+            font-size: 20px;
+            padding: 16px 32px;
+            border-radius: 50px;
+            margin: 10px 0;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .spin-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .spin-btn.secondary {
+            background: linear-gradient(135deg, #6b8cff, #4a6cf7);
+            color: white;
+        }
+        
+        .prize-message {
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid #ffd700;
+            border-radius: 20px;
+            padding: 16px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .ad-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            border: none;
+            border-radius: 50px;
+            padding: 16px 24px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #333;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-ad {
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+        }
+        
+        .btn-reload {
+            background: linear-gradient(135deg, #6b8cff, #4a6cf7);
+            color: white;
+            margin-top: 10px;
+        }
+        
+        .timer-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .timer {
+            font-size: 48px;
+            font-weight: 700;
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ffa500);
+            width: 100%;
+            transition: width 1s linear;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .status-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .wallet-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .wallet-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .wallet-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .wallet-item.selected {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .wallet-icon {
+            font-size: 32px;
+            margin-left: 15px;
+        }
+        
+        .wallet-info {
+            flex: 1;
+        }
+        
+        .wallet-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .wallet-number {
+            font-size: 14px;
+            opacity: 0.7;
+            direction: ltr;
+            text-align: left;
+        }
+        
+        .wallet-badge {
+            background: #ffd700;
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .add-wallet-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed #ffd700;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .add-wallet-btn:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .wallet-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .wallet-type-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .wallet-type-btn:hover {
+            background: rgba(255, 215, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .wallet-type-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 16px;
+            margin: 10px 0;
+            direction: ltr;
+            text-align: left;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+        
+        .withdraw-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .withdraw-amount {
+            font-size: 36px;
+            font-weight: 700;
+            color: #ffd700;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .transaction-id {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            text-align: center;
+            margin: 10px 0;
+            direction: ltr;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+        }
+        
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #ffd700;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .referral-link {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            text-align: center;
+            margin: 10px 0;
+            direction: ltr;
+            word-break: break-all;
+        }
+        
+        .copy-btn {
+            background: #ffd700;
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .ad-status-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        
+        .ad-status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .ad-status-icon {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .ad-status-icon.ready {
+            background: #4CAF50;
+            box-shadow: 0 0 10px #4CAF50;
+        }
+        
+        .ad-status-icon.loading {
+            background: #ffd700;
+            box-shadow: 0 0 10px #ffd700;
+        }
+        
+        .ad-status-icon.error {
+            background: #f44336;
+            box-shadow: 0 0 10px #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="nav-item active" data-page="home">
+            <i>🏠</i>
+            <span>الرئيسية</span>
+        </div>
+        <div class="nav-item" data-page="ads">
+            <i>📺</i>
+            <span>إعلانات</span>
+        </div>
+        <div class="nav-item" data-page="wheel">
+            <i>🎡</i>
+            <span>العجلة</span>
+        </div>
+        <div class="nav-item" data-page="wallet">
+            <i>💳</i>
+            <span>المحفظة</span>
+        </div>
+        <div class="nav-item" data-page="referral">
+            <i>👥</i>
+            <span>دعوة</span>
+        </div>
+    </div>
+    
+    <div class="content">
+        <!-- شاشة التحميل -->
+        <div id="loadingScreen" class="loading">
+            <div class="loading-spinner"></div>
+            <div>جاري تحميل البيانات...</div>
+        </div>
+        
+        <!-- الصفحة الرئيسية -->
+        <div id="homePage" class="page active">
+            <div class="balance-card">
+                <div class="balance-header">
+                    <span class="balance-title">رصيدك الحالي</span>
+                </div>
+                <div class="balance-amount" id="totalPoints">0</div>
+                
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="stat-value" id="todayAds">0</div>
+                        <div class="stat-label">إعلانات اليوم</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="streakCount">0</div>
+                        <div class="stat-label">أيام متتالية</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="referralCount">0</div>
+                        <div class="stat-label">الدعوات</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-grid">
+                <div class="section-card" onclick="navigateTo('ads')">
+                    <div class="section-icon">📺</div>
+                    <div class="section-title">مشاهدة إعلان</div>
+                    <div class="section-subtitle">+1 نقطة</div>
+                </div>
+                <div class="section-card" onclick="navigateTo('wheel')">
+                    <div class="section-icon">🎡</div>
+                    <div class="section-title">عجلة الحظ</div>
+                    <div class="section-subtitle">اربح حتى 200 نقطة</div>
+                </div>
+                <div class="section-card" onclick="dailyCheckin()">
+                    <div class="section-icon">✅</div>
+                    <div class="section-title">تسجيل يومي</div>
+                    <div class="section-subtitle">+5 نقاط</div>
+                </div>
+                <div class="section-card" onclick="navigateTo('referral')">
+                    <div class="section-icon">👥</div>
+                    <div class="section-title">دعوة صديق</div>
+                    <div class="section-subtitle">+80 نقطة</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- صفحة الإعلانات -->
+        <div id="adsPage" class="page">
+            <h2 style="text-align: center; margin-bottom: 20px;">📺 مشاهدة إعلانات</h2>
+            
+            <div class="balance-card" style="margin-bottom: 20px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 14px; opacity: 0.8;">إعلانات اليوم</div>
+                    <div style="font-size: 32px; color: #ffd700;" id="adsTodayCount">0/400</div>
+                </div>
+            </div>
+            
+            <!-- حالة تحميل الإعلانات -->
+            <div class="ad-status-container">
+                <div class="ad-status-item">
+                    <div class="ad-status-icon loading" id="ad1StatusIcon"></div>
+                    <span>إعلان 1 (6113667): <span id="ad1StatusText">جاري التحميل...</span></span>
+                </div>
+                <div class="ad-status-item">
+                    <div class="ad-status-icon loading" id="ad2StatusIcon"></div>
+                    <span>إعلان 2 (6113781): <span id="ad2StatusText">جاري التحميل...</span></span>
+                </div>
+                <div class="ad-status-item">
+                    <div class="ad-status-icon loading" id="ad3StatusIcon"></div>
+                    <span>إعلان 3 (6113782): <span id="ad3StatusText">جاري التحميل...</span></span>
+                </div>
+            </div>
+            
+            <div class="timer-container">
+                <div class="timer" id="timer">30</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress" style="width: 100%"></div>
+                </div>
+            </div>
+            
+            <div class="ad-buttons">
+                <button class="btn btn-ad" id="adBtn1" onclick="playAd(1)">
+                    <span>▶️</span> إعلان 1 (6113667)
+                </button>
+                <button class="btn btn-ad" id="adBtn2" onclick="playAd(2)">
+                    <span>▶️</span> إعلان 2 (6113781)
+                </button>
+                <button class="btn btn-ad" id="adBtn3" onclick="playAd(3)">
+                    <span>▶️</span> إعلان 3 (6113782)
+                </button>
+            </div>
+            
+            <button class="btn btn-reload" id="reloadAdsBtn" onclick="reloadAds()">
+                <span>🔄</span> إعادة تحميل الإعلانات
+            </button>
+            
+            <button class="btn btn-claim hidden" id="claimBtn" onclick="claimReward()">
+                <span>🎁</span> استلم نقطتك
+            </button>
+            
+            <div class="status-box" id="adStatus">
+                ⏳ جاري تحميل الإعلانات...
+            </div>
+        </div>
+        
+        <!-- صفحة عجلة الحظ -->
+        <div id="wheelPage" class="page">
+            <h2 style="text-align: center; margin-bottom: 10px;">🎡 عجلة الحظ</h2>
+            
+            <div class="balance-card" style="margin-bottom: 20px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 14px; opacity: 0.8;">نقاطك الحالية</div>
+                    <div style="font-size: 32px; color: #ffd700;" id="wheelPoints">0</div>
+                </div>
+            </div>
+            
+            <div class="wheel-container">
+                <canvas id="wheelCanvas" width="280" height="280"></canvas>
+                <div class="pointer"></div>
+            </div>
+            
+            <button class="spin-btn" id="spinBtn" onclick="spinWheel()">🎲 ابدأ الدوران (مجاناً)</button>
+            
+            <div id="wheelResult" class="prize-message hidden">
+                🎉 حصلت على 50 نقطة!
+            </div>
+            
+            <div style="background: rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-top: 20px;">
+                <h3 style="margin-bottom: 12px;">🎁 الجوائز</h3>
+                <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+                    <span style="color: #FF6B6B;">5</span>
+                    <span style="color: #4ECDC4;">10</span>
+                    <span style="color: #45B7D1;">20</span>
+                    <span style="color: #96CEB4;">50</span>
+                    <span style="color: #FFE194;">100</span>
+                    <span style="color: #B8A9C9;">200</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- صفحة المحفظة والسحب -->
+        <div id="walletPage" class="page">
+            <h2 style="text-align: center; margin-bottom: 20px;">💳 المحفظة</h2>
+            
+            <div class="balance-card">
+                <div style="text-align: center;">
+                    <div style="font-size: 14px;">رصيدك</div>
+                    <div style="font-size: 32px; color: #ffd700;" id="walletPoints">0</div>
+                    <div style="font-size: 18px;" id="walletEgp">0.00 جنيه</div>
+                </div>
+            </div>
+            
+            <!-- المحافظ المحفوظة -->
+            <div id="savedWalletsSection">
+                <div class="wallet-section">
+                    <h3>📋 محافظي</h3>
+                    <div id="walletsList"></div>
+                    
+                    <div class="add-wallet-btn" onclick="showAddWallet()">
+                        <span style="font-size: 32px;">➕</span>
+                        <h3>إضافة محفظة جديدة</h3>
+                    </div>
+                </div>
+                
+                <button class="btn" style="background: linear-gradient(135deg, #4CAF50, #45a049); color: white; width: 100%;" onclick="showWithdrawConfirm()">
+                    💳 سحب الأرباح (300 نقطة = 55 جنيه)
+                </button>
+            </div>
+            
+            <!-- إضافة محفظة جديدة -->
+            <div id="addWalletSection" style="display: none;">
+                <div class="wallet-section">
+                    <h3>➕ إضافة محفظة</h3>
+                    
+                    <div class="wallet-grid">
+                        <div class="wallet-type-btn" onclick="selectWalletType('vodafone')">
+                            <div class="wallet-type-icon">📱</div>
+                            <div>فودافون كاش</div>
+                        </div>
+                        <div class="wallet-type-btn" onclick="selectWalletType('orange')">
+                            <div class="wallet-type-icon">🟠</div>
+                            <div>أورانج كاش</div>
+                        </div>
+                        <div class="wallet-type-btn" onclick="selectWalletType('etisalat')">
+                            <div class="wallet-type-icon">📞</div>
+                            <div>اتصالات كاش</div>
+                        </div>
+                        <div class="wallet-type-btn" onclick="selectWalletType('we')">
+                            <div class="wallet-type-icon">💳</div>
+                            <div>وي كاش</div>
+                        </div>
+                        <div class="wallet-type-btn" onclick="selectWalletType('paypal')" style="grid-column: span 2;">
+                            <div class="wallet-type-icon">🌐</div>
+                            <div>PayPal</div>
+                        </div>
+                    </div>
+                    
+                    <div id="walletInputSection" style="display: none;">
+                        <input type="text" class="input-field" id="walletNumber" placeholder="أدخل رقم المحفظة" dir="ltr">
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn" style="flex: 2; background: #4CAF50; color: white;" onclick="saveWallet()">💾 حفظ</button>
+                            <button class="btn" style="flex: 1; background: #f44336; color: white;" onclick="hideAddWallet()">❌ إلغاء</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- تأكيد السحب -->
+            <div id="withdrawConfirmSection" style="display: none;">
+                <div class="withdraw-summary">
+                    <h3 style="text-align: center;">تأكيد السحب</h3>
+                    
+                    <div class="withdraw-amount" id="withdrawAmount">0.00</div>
+                    <div style="text-align: center;">جنيه</div>
+                    
+                    <div style="margin: 20px 0;">
+                        <p>سيتم خصم <span id="withdrawPoints">0</span> نقطة</p>
+                        <p>التحويل إلى المحفظة خلال 24 ساعة</p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn" style="flex: 2; background: #4CAF50; color: white;" onclick="confirmWithdraw()">✅ تأكيد</button>
+                        <button class="btn" style="flex: 1; background: #f44336; color: white;" onclick="cancelWithdraw()">❌ إلغاء</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- نتيجة السحب -->
+            <div id="withdrawResultSection" style="display: none;">
+                <div class="withdraw-summary">
+                    <div style="font-size: 64px; text-align: center;">✅</div>
+                    <h3 style="text-align: center;">تم استلام طلبك</h3>
+                    
+                    <div class="transaction-id" id="transactionId">WD123456789</div>
+                    
+                    <p style="text-align: center; margin-top: 20px;">سيتم مراجعة الطلب وإرسال المبلغ خلال 24 ساعة</p>
+                    
+                    <button class="btn" style="background: #667eea; color: white; margin-top: 20px; width: 100%;" onclick="backToWallets()">🔙 العودة</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- صفحة الدعوة -->
+        <div id="referralPage" class="page">
+            <h2 style="text-align: center; margin-bottom: 20px;">👥 دعوة الأصدقاء</h2>
+            
+            <div class="balance-card">
+                <div style="text-align: center;">
+                    <div style="font-size: 14px;">عدد دعواتك</div>
+                    <div style="font-size: 32px; color: #ffd700;" id="referralCountPage">0</div>
+                    <div style="font-size: 18px;" id="referralEarned">0 نقطة</div>
+                </div>
+            </div>
+            
+            <div class="wallet-section">
+                <h3>🔗 رابط الدعوة الخاص بك</h3>
+                <div class="referral-link" id="referralLink">https://t.me/YourTapEarnBot?start=123456</div>
+                <button class="copy-btn" onclick="copyReferralLink()">📋 نسخ الرابط</button>
+            </div>
+            
+            <div class="wallet-section">
+                <h3>🎁 مكافآت الدعوة</h3>
+                <p>• كل صديق يسجل عبر رابطك: <strong>+80 نقطة</strong></p>
+                <p>• عندما يدعو أصدقاؤك أصدقاءهم: <strong>+10 نقاط</strong></p>
+                <p>• الحد الأقصى: <strong>غير محدود</strong></p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // =========== بيانات المستخدم ===========
+        let userId = null;
+        let userName = "مستخدم";
+        let userPoints = 0;
+        let totalEarned = 0;
+        let todayAds = 0;
+        let streak = 0;
+        let referralCount = 0;
+        let referralEarned = 0;
+        let wallets = [];
+        
+        // =========== متغيرات الإعلانات OnClicka ===========
+        let videoShow1 = null; // للإعلان 6113667
+        let videoShow2 = null; // للإعلان 6113781
+        let videoShow3 = null; // للإعلان 6113782
+        let currentAd = null;
+        let timerInterval = null;
+        let timeLeft = 30;
+        let countdownActive = false;
+        let adWatched = false;
+        
+        // =========== متغيرات العجلة ===========
+        let isSpinning = false;
+        let currentRotation = 0;
+        const segments = [
+            { color: '#FF6B6B', label: '5', value: 5 },
+            { color: '#4ECDC4', label: '10', value: 10 },
+            { color: '#45B7D1', label: '20', value: 20 },
+            { color: '#96CEB4', label: '50', value: 50 },
+            { color: '#FFE194', label: '100', value: 100 },
+            { color: '#B8A9C9', label: '200', value: 200 }
+        ];
+        
+        // =========== متغيرات المحفظة ===========
+        let selectedWalletType = null;
+        let selectedWallet = null;
+        
+        // =========== تهيئة الصفحة ===========
+        document.addEventListener('DOMContentLoaded', function() {
+            // إخفاء شاشة التحميل بعد ثانية
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+            }, 1000);
+            
+            // الحصول على معرف المستخدم من تليجرام
+            if (window.Telegram && Telegram.WebApp) {
+                Telegram.WebApp.ready();
+                const user = Telegram.WebApp.initDataUnsafe?.user;
+                if (user) {
+                    userId = user.id;
+                    userName = user.first_name || "مستخدم";
+                    loadUserData();
+                }
+            } else {
+                // للتجريب
+                userId = prompt("أدخل معرف المستخدم:", "123456789");
+                if (userId) loadUserData();
+            }
+            
+            // تهيئة الإعلانات
+            loadAds();
+            
+            // التنقل بين الصفحات
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+                    navigateTo(item.dataset.page);
+                });
+            });
+            
+            // رسم العجلة
+            drawWheel();
+            
+            // تعيين رابط الدعوة
+            setReferralLink();
+        });
+        
+        // =========== دوال التنقل ===========
+        function navigateTo(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(page + 'Page').classList.add('active');
+            
+            if (page === 'wallet') {
+                loadWallets();
+                updateWalletDisplay();
+            } else if (page === 'referral') {
+                updateReferralDisplay();
+            }
+        }
+        
+        // =========== تحميل البيانات من API ===========
+        async function loadUserData() {
+            try {
+                const response = await fetch(`/api/user/${userId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    userPoints = data.points;
+                    totalEarned = data.total_earned;
+                    todayAds = data.ads_today;
+                    streak = data.streak;
+                    referralCount = data.referrals || 0;
+                    referralEarned = data.referral_earned || 0;
+                    
+                    updateUI();
+                }
+            } catch (error) {
+                console.log('خطأ في تحميل البيانات، استخدام بيانات تجريبية');
+                // بيانات تجريبية
+                userPoints = parseInt(localStorage.getItem('points') || '1250');
+                totalEarned = parseInt(localStorage.getItem('totalEarned') || '2500');
+                todayAds = parseInt(localStorage.getItem('todayAds') || '15');
+                streak = parseInt(localStorage.getItem('streak') || '7');
+                referralCount = parseInt(localStorage.getItem('referralCount') || '3');
+                referralEarned = parseInt(localStorage.getItem('referralEarned') || '240');
+                updateUI();
+            }
+        }
+        
+        function updateUI() {
+            document.getElementById('totalPoints').textContent = userPoints;
+            document.getElementById('todayAds').textContent = todayAds;
+            document.getElementById('streakCount').textContent = streak;
+            document.getElementById('referralCount').textContent = referralCount;
+            
+            if (document.getElementById('adsTodayCount')) {
+                document.getElementById('adsTodayCount').textContent = `${todayAds}/400`;
+            }
+            
+            if (document.getElementById('wheelPoints')) {
+                document.getElementById('wheelPoints').textContent = userPoints;
+            }
+            
+            if (document.getElementById('walletPoints')) {
+                document.getElementById('walletPoints').textContent = userPoints;
+                const egpValue = (userPoints / 300) * 55;
+                document.getElementById('walletEgp').textContent = egpValue.toFixed(2) + ' جنيه';
+            }
+            
+            // حفظ في localStorage
+            localStorage.setItem('points', userPoints);
+            localStorage.setItem('totalEarned', totalEarned);
+            localStorage.setItem('todayAds', todayAds);
+            localStorage.setItem('streak', streak);
+            localStorage.setItem('referralCount', referralCount);
+            localStorage.setItem('referralEarned', referralEarned);
+        }
+        
+        function updateWalletDisplay() {
+            const egpValue = (userPoints / 300) * 55;
+            document.getElementById('walletPoints').textContent = userPoints;
+            document.getElementById('walletEgp').textContent = egpValue.toFixed(2) + ' جنيه';
+        }
+        
+        function updateReferralDisplay() {
+            document.getElementById('referralCountPage').textContent = referralCount;
+            document.getElementById('referralEarned').textContent = referralEarned + ' نقطة';
+        }
+        
+        function setReferralLink() {
+            if (userId) {
+                const link = `https://t.me/YourTapEarnBot?start=${userId}`;
+                document.getElementById('referralLink').textContent = link;
+            }
+        }
+        
+        function copyReferralLink() {
+            const link = document.getElementById('referralLink').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                Swal.fire('تم النسخ!', 'تم نسخ رابط الدعوة', 'success');
+            });
+        }
+        
+        // =========== دوال الإعلانات ===========
+        function loadAds() {
+            document.getElementById('ad1StatusText').innerText = 'جاري التحميل...';
+            document.getElementById('ad2StatusText').innerText = 'جاري التحميل...';
+            document.getElementById('ad3StatusText').innerText = 'جاري التحميل...';
+            
+            // تهيئة الإعلان الأول
+            window.initCdTma?.({ id: '6113667' }).then(show => {
+                videoShow1 = show;
+                console.log('✅ إعلان 6113667 جاهز');
+                document.getElementById('ad1StatusIcon').className = 'ad-status-icon ready';
+                document.getElementById('ad1StatusText').innerText = 'جاهز';
+                document.getElementById('ad1StatusText').style.color = '#4CAF50';
+                updateOverallStatus();
+            }).catch(e => {
+                console.log('❌ خطأ في إعلان 6113667:', e);
+                document.getElementById('ad1StatusIcon').className = 'ad-status-icon error';
+                document.getElementById('ad1StatusText').innerHTML = '❌ فشل التحميل';
+                document.getElementById('ad1StatusText').style.color = '#f44336';
+                updateOverallStatus();
+            });
+            
+            // تهيئة الإعلان الثاني
+            window.initCdTma?.({ id: '6113781' }).then(show => {
+                videoShow2 = show;
+                console.log('✅ إعلان 6113781 جاهز');
+                document.getElementById('ad2StatusIcon').className = 'ad-status-icon ready';
+                document.getElementById('ad2StatusText').innerText = 'جاهز';
+                document.getElementById('ad2StatusText').style.color = '#4CAF50';
+                updateOverallStatus();
+            }).catch(e => {
+                console.log('❌ خطأ في إعلان 6113781:', e);
+                document.getElementById('ad2StatusIcon').className = 'ad-status-icon error';
+                document.getElementById('ad2StatusText').innerHTML = '❌ فشل التحميل';
+                document.getElementById('ad2StatusText').style.color = '#f44336';
+                updateOverallStatus();
+            });
+            
+            // تهيئة الإعلان الثالث
+            window.initCdTma?.({ id: '6113782' }).then(show => {
+                videoShow3 = show;
+                console.log('✅ إعلان 6113782 جاهز');
+                document.getElementById('ad3StatusIcon').className = 'ad-status-icon ready';
+                document.getElementById('ad3StatusText').innerText = 'جاهز';
+                document.getElementById('ad3StatusText').style.color = '#4CAF50';
+                updateOverallStatus();
+            }).catch(e => {
+                console.log('❌ خطأ في إعلان 6113782:', e);
+                document.getElementById('ad3StatusIcon').className = 'ad-status-icon error';
+                document.getElementById('ad3StatusText').innerHTML = '❌ فشل التحميل';
+                document.getElementById('ad3StatusText').style.color = '#f44336';
+                updateOverallStatus();
+            });
+        }
+        
+        function updateOverallStatus() {
+            const ad1Ready = videoShow1 !== null;
+            const ad2Ready = videoShow2 !== null;
+            const ad3Ready = videoShow3 !== null;
+            
+            if (ad1Ready || ad2Ready || ad3Ready) {
+                document.getElementById('adStatus').innerHTML = '✅ بعض الإعلانات جاهزة للمشاهدة';
+                document.getElementById('adStatus').style.color = '#4CAF50';
+            } else {
+                document.getElementById('adStatus').innerHTML = '⏳ جاري تحميل الإعلانات...';
+                document.getElementById('adStatus').style.color = '#ffd700';
+            }
+        }
+        
+        function reloadAds() {
+            Swal.fire({
+                title: 'جاري إعادة التحميل',
+                text: 'يتم إعادة تحميل الإعلانات...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            videoShow1 = null;
+            videoShow2 = null;
+            videoShow3 = null;
+            
+            document.getElementById('ad1StatusIcon').className = 'ad-status-icon loading';
+            document.getElementById('ad1StatusText').innerText = 'جاري التحميل...';
+            document.getElementById('ad1StatusText').style.color = 'white';
+            document.getElementById('ad2StatusIcon').className = 'ad-status-icon loading';
+            document.getElementById('ad2StatusText').innerText = 'جاري التحميل...';
+            document.getElementById('ad2StatusText').style.color = 'white';
+            document.getElementById('ad3StatusIcon').className = 'ad-status-icon loading';
+            document.getElementById('ad3StatusText').innerText = 'جاري التحميل...';
+            document.getElementById('ad3StatusText').style.color = 'white';
+            
+            loadAds();
+            
+            setTimeout(() => {
+                Swal.close();
+            }, 2000);
+        }
+        
+        // =========== الإعلانات ===========
+        function playAd(adNumber) {
+            if (countdownActive) {
+                Swal.fire('⏳', 'يوجد إعلان قيد المشاهدة', 'warning');
+                return;
+            }
+            
+            if (todayAds >= 400) {
+                Swal.fire('❌', 'لقد استنفدت حد الإعلانات اليومي (400 إعلان)', 'error');
+                return;
+            }
+            
+            let showFunc = null;
+            let adName = "";
+            if (adNumber === 1) {
+                showFunc = videoShow1;
+                adName = "6113667";
+            } else if (adNumber === 2) {
+                showFunc = videoShow2;
+                adName = "6113781";
+            } else if (adNumber === 3) {
+                showFunc = videoShow3;
+                adName = "6113782";
+            }
+            
+            console.log(`محاولة تشغيل الإعلان ${adName}:`, showFunc);
+            
+            if (!showFunc) {
+                Swal.fire({
+                    title: '❌ خطأ',
+                    text: `الإعلان ${adName} لم يكتمل تحميله. حاول إعادة التحميل.`,
+                    icon: 'error',
+                    confirmButtonText: 'حسناً'
+                });
+                return;
+            }
+            
+            document.getElementById('adBtn1').disabled = true;
+            document.getElementById('adBtn2').disabled = true;
+            document.getElementById('adBtn3').disabled = true;
+            document.getElementById('reloadAdsBtn').disabled = true;
+            
+            countdownActive = true;
+            currentAd = adNumber;
+            adWatched = false;
+            
+            document.getElementById('adStatus').innerHTML = `📺 يتم تشغيل الإعلان ${adName}... انتظر 30 ثانية`;
+            document.getElementById('adStatus').style.color = '#ffd700';
+            
+            try {
+                showFunc().then(() => {
+                    console.log(`✅ الإعلان ${adName} اشتغل بنجاح`);
+                    startCountdown();
+                }).catch(e => {
+                    console.log(`❌ خطأ في تشغيل الإعلان ${adName}:`, e);
+                    document.getElementById('adStatus').innerHTML = `❌ حدث خطأ في تشغيل الإعلان ${adName}`;
+                    document.getElementById('adStatus').style.color = '#f44336';
+                    resetAdButtons();
+                    
+                    Swal.fire({
+                        title: '❌ خطأ',
+                        text: `حدث خطأ في تشغيل الإعلان ${adName}`,
+                        icon: 'error',
+                        confirmButtonText: 'حسناً'
+                    });
+                });
+            } catch (e) {
+                console.log(`❌ استثناء في تشغيل الإعلان ${adName}:`, e);
+                document.getElementById('adStatus').innerHTML = `❌ فشل تشغيل الإعلان ${adName}`;
+                document.getElementById('adStatus').style.color = '#f44336';
+                resetAdButtons();
+                
+                Swal.fire({
+                    title: '❌ خطأ',
+                    text: `فشل تشغيل الإعلان ${adName}`,
+                    icon: 'error',
+                    confirmButtonText: 'حسناً'
+                });
+            }
+        }
+        
+        function startCountdown() {
+            timeLeft = 30;
+            document.getElementById('timer').textContent = timeLeft;
+            document.getElementById('progress').style.width = '100%';
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+                
+                let progressPercent = (timeLeft / 30) * 100;
+                document.getElementById('progress').style.width = progressPercent + '%';
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('timer').textContent = '0';
+                    document.getElementById('progress').style.width = '0%';
+                    countdownActive = false;
+                    adWatched = true;
+                    
+                    document.getElementById('adStatus').innerHTML = '✅ تمت المشاهدة! اضغط على استلام نقطتك';
+                    document.getElementById('adStatus').style.color = '#4CAF50';
+                    document.getElementById('claimBtn').classList.remove('hidden');
+                }
+            }, 1000);
+        }
+        
+        async function claimReward() {
+            if (!adWatched) {
+                Swal.fire('❌', 'يجب مشاهدة الإعلان أولاً', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/watch_ad/${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    userPoints = data.new_points;
+                    todayAds = data.new_ads_today;
+                    updateUI();
+                    
+                    document.getElementById('claimBtn').classList.add('hidden');
+                    document.getElementById('adStatus').innerHTML = '✅ تم إضافة نقطة!';
+                    document.getElementById('adStatus').style.color = '#4CAF50';
+                    resetAdButtons();
+                    
+                    Swal.fire('🎁', 'تم إضافة نقطة إلى رصيدك', 'success');
+                }
+            } catch (error) {
+                // للتجريب
+                todayAds++;
+                userPoints++;
+                updateUI();
+                
+                document.getElementById('claimBtn').classList.add('hidden');
+                document.getElementById('adStatus').innerHTML = '✅ تم إضافة نقطة!';
+                document.getElementById('adStatus').style.color = '#4CAF50';
+                resetAdButtons();
+                
+                Swal.fire('🎁', 'تم إضافة نقطة إلى رصيدك', 'success');
+            }
+            
+            adWatched = false;
+        }
+        
+        function resetAdButtons() {
+            document.getElementById('adBtn1').disabled = false;
+            document.getElementById('adBtn2').disabled = false;
+            document.getElementById('adBtn3').disabled = false;
+            document.getElementById('reloadAdsBtn').disabled = false;
+            countdownActive = false;
+        }
+        
+        // =========== التسجيل اليومي ===========
+        async function dailyCheckin() {
+            try {
+                const response = await fetch(`/api/daily_checkin/${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    userPoints = data.new_points;
+                    streak = data.streak;
+                    updateUI();
+                    
+                    let bonusMsg = '';
+                    if (streak === 7) bonusMsg = ' + مكافأة أسبوع 20 نقطة!';
+                    else if (streak === 30) bonusMsg = ' + مكافأة شهر 100 نقطة!';
+                    
+                    Swal.fire('✅', `تم التسجيل! +5 نقاط (السلسلة: ${streak})${bonusMsg}`, 'success');
+                } else {
+                    Swal.fire('✅', 'لقد سجلت حضورك اليوم بالفعل', 'info');
+                }
+            } catch (error) {
+                // للتجريب
+                userPoints += 5;
+                streak++;
+                updateUI();
+                Swal.fire('✅', 'تم التسجيل! +5 نقاط', 'success');
+            }
+        }
+        
+        // =========== عجلة الحظ ===========
+        function drawWheel() {
+            const canvas = document.getElementById('wheelCanvas');
+            const ctx = canvas.getContext('2d');
+            const angleStep = (Math.PI * 2) / segments.length;
+            
+            ctx.clearRect(0, 0, 280, 280);
+            
+            segments.forEach((seg, index) => {
+                const startAngle = index * angleStep;
+                const endAngle = startAngle + angleStep;
+                
+                ctx.beginPath();
+                ctx.fillStyle = seg.color;
+                ctx.moveTo(140, 140);
+                ctx.arc(140, 140, 140, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.save();
+                ctx.translate(140, 140);
+                ctx.rotate(startAngle + angleStep / 2);
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText(seg.label, 70, 0);
+                ctx.restore();
+            });
+        }
+        
+        function spinWheel() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+            document.getElementById('wheelResult').classList.add('hidden');
+            
+            const spinAngle = Math.random() * 2000 + 2000;
+            currentRotation += spinAngle;
+            document.getElementById('wheelCanvas').style.transform = `rotate(${currentRotation}deg)`;
+            
+            setTimeout(() => {
+                isSpinning = false;
+                document.getElementById('spinBtn').disabled = false;
+                
+                const finalAngle = currentRotation % 360;
+                const segmentIndex = Math.floor((360 - finalAngle) / (360 / segments.length)) % segments.length;
+                const prize = segments[segmentIndex].value;
+                
+                userPoints += prize;
+                updateUI();
+                
+                document.getElementById('wheelResult').classList.remove('hidden');
+                document.getElementById('wheelResult').innerHTML = `🎉 حصلت على ${prize} نقطة!`;
+                
+                // إرسال للخادم
+                fetch(`/api/wheel_spin/${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prize: prize })
+                });
+                
+                setTimeout(() => {
+                    document.getElementById('wheelResult').classList.add('hidden');
+                }, 3000);
+            }, 4000);
+        }
+        
+        // =========== المحافظ ===========
+        function loadWallets() {
+            const savedWallets = localStorage.getItem('wallets');
+            if (savedWallets) {
+                wallets = JSON.parse(savedWallets);
+            } else {
+                wallets = [];
+            }
+            displayWallets();
+        }
+        
+        function displayWallets() {
+            const list = document.getElementById('walletsList');
+            if (wallets.length === 0) {
+                list.innerHTML = '<p style="text-align: center; opacity: 0.7; padding: 20px;">لا توجد محافظ مضافة</p>';
+                return;
+            }
+            
+            let html = '';
+            wallets.forEach((wallet, index) => {
+                const icon = {
+                    'vodafone': '📱',
+                    'orange': '🟠',
+                    'etisalat': '📞',
+                    'we': '💳',
+                    'paypal': '🌐'
+                }[wallet.type] || '💳';
+                
+                html += `
+                    <div class="wallet-item ${wallet.is_default ? 'selected' : ''}" onclick="selectWallet(${index})">
+                        <div style="display: flex; align-items: center;">
+                            <span class="wallet-icon">${icon}</span>
+                            <div class="wallet-info">
+                                <div class="wallet-name">${wallet.type_name}</div>
+                                <div class="wallet-number">${wallet.number}</div>
+                            </div>
+                        </div>
+                        ${wallet.is_default ? '<span class="wallet-badge">⭐ افتراضي</span>' : ''}
+                    </div>
+                `;
+            });
+            
+            list.innerHTML = html;
+        }
+        
+        function showAddWallet() {
+            document.getElementById('savedWalletsSection').style.display = 'none';
+            document.getElementById('addWalletSection').style.display = 'block';
+        }
+        
+        function hideAddWallet() {
+            document.getElementById('addWalletSection').style.display = 'none';
+            document.getElementById('savedWalletsSection').style.display = 'block';
+            selectedWalletType = null;
+            document.getElementById('walletInputSection').style.display = 'none';
+        }
+        
+        function selectWalletType(type) {
+            selectedWalletType = type;
+            document.getElementById('walletInputSection').style.display = 'block';
+            document.getElementById('walletNumber').placeholder = 
+                type === 'paypal' ? 'example@email.com' : 'أدخل رقم المحفظة (11 رقم)';
+        }
+        
+        function saveWallet() {
+            const number = document.getElementById('walletNumber').value.trim();
+            
+            if (!selectedWalletType || !number) {
+                Swal.fire('خطأ', 'الرجاء إدخال رقم المحفظة', 'error');
+                return;
+            }
+            
+            const typeNames = {
+                'vodafone': 'فودافون كاش',
+                'orange': 'أورانج كاش',
+                'etisalat': 'اتصالات كاش',
+                'we': 'وي كاش',
+                'paypal': 'PayPal'
+            };
+            
+            const newWallet = {
+                type: selectedWalletType,
+                type_name: typeNames[selectedWalletType],
+                number: number,
+                is_default: wallets.length === 0
+            };
+            
+            wallets.push(newWallet);
+            localStorage.setItem('wallets', JSON.stringify(wallets));
+            
+            Swal.fire('تم', 'تم حفظ المحفظة بنجاح', 'success');
+            hideAddWallet();
+            displayWallets();
+        }
+        
+        function selectWallet(index) {
+            wallets.forEach((w, i) => w.is_default = (i === index));
+            selectedWallet = wallets[index];
+            localStorage.setItem('wallets', JSON.stringify(wallets));
+            displayWallets();
+            Swal.fire('تم التحديد', `تم اختيار ${selectedWallet.type_name}`, 'success');
+        }
+        
+        function showWithdrawConfirm() {
+            if (userPoints < 300) {
+                Swal.fire('عذراً', 'الحد الأدنى للسحب 300 نقطة', 'warning');
+                return;
+            }
+            
+            const defaultWallet = wallets.find(w => w.is_default);
+            if (!defaultWallet && wallets.length > 0) {
+                wallets[0].is_default = true;
+                selectedWallet = wallets[0];
+            } else if (wallets.length === 0) {
+                Swal.fire('تنبيه', 'الرجاء إضافة محفظة أولاً', 'warning');
+                showAddWallet();
+                return;
+            }
+            
+            const egpAmount = (userPoints / 300) * 55;
+            
+            document.getElementById('withdrawAmount').textContent = egpAmount.toFixed(2);
+            document.getElementById('withdrawPoints').textContent = userPoints;
+            
+            document.getElementById('savedWalletsSection').style.display = 'none';
+            document.getElementById('withdrawConfirmSection').style.display = 'block';
+        }
+        
+        async function confirmWithdraw() {
+            const wallet = wallets.find(w => w.is_default) || wallets[0];
+            if (!wallet) {
+                Swal.fire('خطأ', 'الرجاء اختيار محفظة', 'error');
+                return;
+            }
+            
+            const egpAmount = (userPoints / 300) * 55;
+            const transactionId = 'WD' + Date.now() + Math.floor(Math.random()*1000);
+            
+            // إرسال طلب السحب
+            await fetch('/api/withdraw_request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: userId,
+                    amount: egpAmount,
+                    wallet_type: wallet.type,
+                    wallet_number: wallet.number,
+                    transaction_id: transactionId
+                })
+            });
+            
+            document.getElementById('transactionId').textContent = transactionId;
+            document.getElementById('withdrawConfirmSection').style.display = 'none';
+            document.getElementById('withdrawResultSection').style.display = 'block';
+            
+            // خصم النقاط
+            userPoints = 0;
+            updateUI();
+        }
+        
+        function cancelWithdraw() {
+            document.getElementById('withdrawConfirmSection').style.display = 'none';
+            document.getElementById('savedWalletsSection').style.display = 'block';
+        }
+        
+        function backToWallets() {
+            document.getElementById('withdrawResultSection').style.display = 'none';
+            document.getElementById('savedWalletsSection').style.display = 'block';
+        }
+    </script>
+</body>
+    </html>
