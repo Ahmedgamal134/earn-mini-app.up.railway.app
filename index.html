@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>بوت الربح الذكي - عجلة الحظ</title>
-    
-    <!-- مكتبة Telegram WebApp -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
+    <title>عجلة الحظ - بوت الربح الذكي</title>
     <style>
         * {
             margin: 0;
@@ -20,17 +16,20 @@
             background: linear-gradient(145deg, #0f0c29, #302b63, #24243e);
             min-height: 100vh;
             color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
-        .content {
-            padding: 20px 16px;
+        .container {
             max-width: 480px;
-            margin: 0 auto;
+            width: 100%;
+            padding: 20px;
             text-align: center;
         }
         
         h1 {
-            font-size: 28px;
+            font-size: 32px;
             margin-bottom: 20px;
             background: linear-gradient(135deg, #ffd700, #ffa500);
             -webkit-background-clip: text;
@@ -40,20 +39,24 @@
         .balance-card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border-radius: 24px;
+            border-radius: 20px;
             padding: 20px;
             margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .balance-title {
+            font-size: 16px;
+            opacity: 0.8;
         }
         
         .balance-amount {
             font-size: 48px;
             font-weight: 700;
             color: #ffd700;
-            margin: 10px 0;
+            margin-top: 5px;
         }
         
-        .wheel-container {
+        .wheel-wrapper {
             position: relative;
             width: 280px;
             height: 280px;
@@ -65,7 +68,7 @@
             height: 100%;
             border-radius: 50%;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-            transition: transform 4s cubic-bezier(0.25, 0.1, 0.15, 1);
+            transition: transform 4s ease-out;
         }
         
         .pointer {
@@ -88,7 +91,7 @@
             margin: 20px 0;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 20px;
-            padding: 16px;
+            padding: 15px;
         }
         
         .stat {
@@ -114,7 +117,7 @@
             font-size: 20px;
             padding: 16px 32px;
             border-radius: 50px;
-            margin: 10px 0;
+            margin: 20px 0;
             cursor: pointer;
             box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
             transition: all 0.3s ease;
@@ -135,21 +138,18 @@
             text-align: center;
             font-size: 24px;
             font-weight: 700;
+            color: #ffd700;
         }
         
         .prize-message.hidden {
             display: none;
         }
         
-        .prize-message span {
-            color: #ffd700;
-        }
-        
-        .prizes-grid {
+        .prize-grid {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
             margin: 20px 0;
         }
         
@@ -157,15 +157,16 @@
             padding: 8px 16px;
             border-radius: 20px;
             font-weight: 600;
+            color: #333;
         }
     </style>
 </head>
 <body>
-    <div class="content">
+    <div class="container">
         <h1>🎡 عجلة الحظ</h1>
         
         <div class="balance-card">
-            <div style="opacity: 0.8;">رصيدك الحالي</div>
+            <div class="balance-title">رصيدك الحالي</div>
             <div class="balance-amount" id="totalPoints">0</div>
         </div>
         
@@ -180,7 +181,7 @@
             </div>
         </div>
         
-        <div class="wheel-container">
+        <div class="wheel-wrapper">
             <canvas id="wheelCanvas" width="280" height="280"></canvas>
             <div class="pointer"></div>
         </div>
@@ -188,35 +189,15 @@
         <button class="spin-btn" id="spinBtn" onclick="spinWheel()">🎲 ابدأ الدوران (20 نقطة)</button>
         
         <div id="prizeMessage" class="prize-message hidden">
-            🎉 <span id="prizeAmount">0</span> نقطة!
+            🎉 حصلت على <span id="prizeValue">0</span> نقطة!
         </div>
         
-        <div class="prizes-grid" id="prizesGrid"></div>
+        <div class="prize-grid" id="prizeGrid"></div>
     </div>
     
     <script>
-        // =========== بيانات المستخدم (مخزنة محلياً) ===========
-        let totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
-        
-        // عناصر HTML
-        const totalPointsEl = document.getElementById('totalPoints');
-        const wheelBalanceEl = document.getElementById('wheelBalance');
-        const spinBtn = document.getElementById('spinBtn');
-        const prizeMessage = document.getElementById('prizeMessage');
-        const prizeAmount = document.getElementById('prizeAmount');
-        const canvas = document.getElementById('wheelCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // تحديث الرصيد في الواجهة
-        function updateUI() {
-            totalPointsEl.textContent = totalPoints;
-            if (wheelBalanceEl) wheelBalanceEl.textContent = totalPoints;
-            localStorage.setItem('totalPoints', totalPoints.toString());
-        }
-        updateUI();
-        
-        // =========== عجلة الحظ (7 قطاعات) ===========
-        const segments = [
+        // =========== إعدادات العجلة ===========
+        const SEGMENTS = [
             { color: '#FF6B6B', label: '0', value: 0 },
             { color: '#4ECDC4', label: '5', value: 5 },
             { color: '#45B7D1', label: '10', value: 10 },
@@ -226,23 +207,36 @@
             { color: '#FFD700', label: '80', value: 80 }
         ];
         
-        // رسم الجوائز في الأسفل
-        const prizesGrid = document.getElementById('prizesGrid');
-        segments.forEach(seg => {
-            const item = document.createElement('span');
-            item.className = 'prize-item';
-            item.style.background = seg.color;
-            item.style.color = '#000';
-            item.textContent = seg.label + ' نقطة';
-            prizesGrid.appendChild(item);
-        });
+        // =========== بيانات المستخدم ===========
+        let totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
         
-        // رسم العجلة
+        // =========== عناصر HTML ===========
+        const totalPointsEl = document.getElementById('totalPoints');
+        const wheelBalanceEl = document.getElementById('wheelBalance');
+        const spinBtn = document.getElementById('spinBtn');
+        const prizeMessage = document.getElementById('prizeMessage');
+        const prizeValue = document.getElementById('prizeValue');
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // =========== متغيرات العجلة ===========
+        let isSpinning = false;
+        let currentRotation = 0;
+        
+        // =========== تحديث الرصيد ===========
+        function updateUI() {
+            totalPointsEl.textContent = totalPoints;
+            wheelBalanceEl.textContent = totalPoints;
+            localStorage.setItem('totalPoints', totalPoints.toString());
+        }
+        updateUI();
+        
+        // =========== رسم العجلة ===========
         function drawWheel() {
-            const angleStep = (Math.PI * 2) / segments.length;
+            const angleStep = (Math.PI * 2) / SEGMENTS.length;
             ctx.clearRect(0, 0, 280, 280);
             
-            segments.forEach((seg, index) => {
+            SEGMENTS.forEach((seg, index) => {
                 const startAngle = index * angleStep;
                 const endAngle = startAngle + angleStep;
                 
@@ -253,6 +247,14 @@
                 ctx.arc(140, 140, 140, startAngle, endAngle);
                 ctx.closePath();
                 ctx.fill();
+                
+                // رسم الخطوط البيضاء
+                ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(140, 140);
+                ctx.lineTo(140 + Math.cos(startAngle) * 140, 140 + Math.sin(startAngle) * 140);
+                ctx.stroke();
                 
                 // كتابة القيمة
                 ctx.save();
@@ -267,26 +269,36 @@
         }
         drawWheel();
         
-        let isSpinning = false;
-        let currentRotation = 0;
+        // =========== رسم شبكة الجوائز ===========
+        const prizeGrid = document.getElementById('prizeGrid');
+        SEGMENTS.forEach(seg => {
+            const item = document.createElement('span');
+            item.className = 'prize-item';
+            item.style.backgroundColor = seg.color;
+            item.textContent = seg.label + ' نقطة';
+            prizeGrid.appendChild(item);
+        });
         
-        // حساب الجائزة بدقة 100%
-        function calculatePrize(finalAngle) {
-            // تطبيع الزاوية بين 0 و 360
-            const normalizedAngle = ((finalAngle % 360) + 360) % 360;
+        // =========== الحصول على الجائزة بدقة 100% ===========
+        function getPrize() {
+            // حساب الزاوية النهائية وتطبيعها بين 0 و 360
+            const finalAngle = ((currentRotation % 360) + 360) % 360;
             
-            // زاوية المؤشر (في أعلى 90 درجة)
-            const pointerAngle = (normalizedAngle + 90) % 360;
+            // زاوية المؤشر هي الزاوية الحالية + 90 درجة (لأن المؤشر في الأعلى)
+            const pointerAngle = (finalAngle + 90) % 360;
             
-            // حجم القطاع
-            const segmentAngle = 360 / segments.length;
+            // حجم القطاع الواحد
+            const segmentAngle = 360 / SEGMENTS.length;
             
-            // حساب رقم القطاع (0-based)
-            const index = Math.floor(pointerAngle / segmentAngle) % segments.length;
+            // حساب رقم القطاع (من 0 إلى 6)
+            const index = Math.floor(pointerAngle / segmentAngle) % SEGMENTS.length;
             
-            return segments[index];
+            console.log(`الزاوية: ${finalAngle.toFixed(2)}°, المؤشر: ${pointerAngle.toFixed(2)}°, القطاع: ${index}, القيمة: ${SEGMENTS[index].value}`);
+            
+            return SEGMENTS[index];
         }
         
+        // =========== تدوير العجلة ===========
         function spinWheel() {
             if (isSpinning) return;
             
@@ -303,20 +315,21 @@
             spinBtn.disabled = true;
             prizeMessage.classList.add('hidden');
             
-            // دوران عشوائي (5-8 لفات)
-            const spinAngle = Math.random() * 1080 + 1800;
+            // إضافة دوران عشوائي (5 إلى 8 لفات)
+            const randomSpins = Math.floor(Math.random() * 4) + 5; // 5-8 لفات
+            const spinAngle = randomSpins * 360 + Math.random() * 360;
             currentRotation += spinAngle;
             
             canvas.style.transform = `rotate(${currentRotation}deg)`;
             
             // بعد انتهاء الدوران
             setTimeout(() => {
-                const prize = calculatePrize(currentRotation);
+                const prize = getPrize();
                 
                 totalPoints += prize.value;
                 updateUI();
                 
-                prizeAmount.textContent = prize.value;
+                prizeValue.textContent = prize.value;
                 prizeMessage.classList.remove('hidden');
                 
                 setTimeout(() => {
