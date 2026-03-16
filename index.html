@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>بوت الربح الذكي - التطبيق المصغر</title>
     
-    <!-- مكتبات OnClickA للإعلانات -->
-    <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
-    
     <!-- مكتبة Telegram WebApp -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- مكتبات OnClickA للإعلانات -->
+    <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
     
     <style>
         * {
@@ -61,7 +61,6 @@
             margin-bottom: 4px;
         }
         
-        /* المحتوى الرئيسي */
         .content {
             padding: 20px 16px 80px 16px;
             max-width: 480px;
@@ -164,7 +163,7 @@
             opacity: 0.7;
         }
         
-        /* صفحة عجلة الحظ */
+        /* صفحة عجلة الحظ المحسّنة */
         .wheel-page {
             text-align: center;
         }
@@ -298,11 +297,6 @@
             background: linear-gradient(135deg, #ff6600, #ff3300);
         }
         
-        .btn-checkin {
-            background: linear-gradient(135deg, #4caf50, #45a049);
-            color: white;
-        }
-        
         .timer-container {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 20px;
@@ -337,7 +331,15 @@
             display: none;
         }
         
-        /* صفحة الإعدادات */
+        .status {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        /* صفحة الحساب والمحافظ */
         .settings-list {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 20px;
@@ -356,33 +358,34 @@
             border-bottom: none;
         }
         
-        .toggle {
-            width: 50px;
-            height: 28px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 30px;
-            position: relative;
+        .wallet-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .wallet-item {
+            background: linear-gradient(135deg, #4a6cf7, #6b8cff);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
             cursor: pointer;
+            transition: all 0.3s ease;
         }
         
-        .toggle.active {
-            background: #4caf50;
+        .wallet-item:hover {
+            transform: scale(1.05);
         }
         
-        .toggle::after {
-            content: '';
-            width: 24px;
-            height: 24px;
-            background: white;
-            border-radius: 50%;
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            transition: 0.3s;
+        .wallet-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
         }
         
-        .toggle.active::after {
-            left: 24px;
+        .wallet-name {
+            font-size: 14px;
+            font-weight: 600;
         }
         
         .page {
@@ -391,6 +394,15 @@
         
         .page.active {
             display: block;
+        }
+        
+        .error-badge {
+            background: #f44336;
+            color: white;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 8px;
         }
     </style>
 </head>
@@ -423,11 +435,11 @@
                     <span class="balance-title">رصيدك الحالي</span>
                     <span class="balance-label">💰 نقاط</span>
                 </div>
-                <div class="balance-amount" id="totalPoints">...</div>
+                <div class="balance-amount" id="totalPoints">جاري التحميل...</div>
                 
                 <div class="stats-row">
                     <div class="stat-box">
-                        <div class="stat-value" id="todayCount">...</div>
+                        <div class="stat-value" id="todayCount">0</div>
                         <div class="stat-label">إعلانات اليوم</div>
                     </div>
                     <div class="stat-box">
@@ -450,12 +462,12 @@
                 <div class="section-card" onclick="navigateTo('wheel')">
                     <div class="section-icon">🎡</div>
                     <div class="section-title">عجلة الحظ</div>
-                    <div class="section-subtitle">50 نقطة للعب</div>
+                    <div class="section-subtitle">20 نقطة للعب</div>
                 </div>
                 <div class="section-card" onclick="dailyCheckin()">
                     <div class="section-icon">✅</div>
                     <div class="section-title">تسجيل يومي</div>
-                    <div class="section-subtitle">+3 نقاط</div>
+                    <div class="section-subtitle">+5 نقاط</div>
                 </div>
                 <div class="section-card" onclick="inviteFriend()">
                     <div class="section-icon">👥</div>
@@ -465,17 +477,17 @@
             </div>
         </div>
         
-        <!-- صفحة عجلة الحظ -->
+        <!-- صفحة عجلة الحظ المحسّنة -->
         <div id="wheelPage" class="page">
             <h2 style="text-align: center; margin-bottom: 10px;">🎡 عجلة الحظ</h2>
             
             <div class="wheel-stats">
                 <div class="wheel-stat">
-                    <div class="wheel-stat-value" id="wheelBalance">...</div>
+                    <div class="wheel-stat-value" id="wheelBalance">0</div>
                     <div class="wheel-stat-label">نقاطك</div>
                 </div>
                 <div class="wheel-stat">
-                    <div class="wheel-stat-value" id="wheelCost">50</div>
+                    <div class="wheel-stat-value" id="wheelCost">20</div>
                     <div class="wheel-stat-label">تكلفة اللعب</div>
                 </div>
             </div>
@@ -486,35 +498,29 @@
             </div>
             
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button class="spin-btn" id="spinBtn" onclick="spinWheel()">🎲 ابدأ الدوران</button>
-                <button class="spin-btn secondary" id="watchAdSpinBtn" onclick="spinWithAd()">📺 شاهد إعلان و العب مجاناً</button>
+                <button class="spin-btn" id="spinBtn" onclick="spinWheel()">🎲 ابدأ الدوران (20)</button>
+                <button class="spin-btn secondary" id="watchAdSpinBtn" onclick="spinWithAd()">📺 إعلان و العب مجاناً</button>
             </div>
             
             <div id="wheelResult" class="prize-message hidden">
-                🎉 حصلت على 50 نقطة!
+                🎉 حصلت على 0 نقطة!
             </div>
             
             <div style="background: rgba(255,255,255,0.05); border-radius: 20px; padding: 16px; margin-top: 20px;">
                 <h3 style="margin-bottom: 12px;">🎁 الجوائز المتاحة</h3>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span>🟥 10 نقاط</span>
-                    <span>🟩 20 نقطة</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span>🟦 50 نقاط</span>
-                    <span>🟩 100 نقطة</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span>🟨 5 نقاط</span>
-                    <span>🟪 200 نقطة</span>
-                </div>
-                <div style="display: flex; justify-content: center;">
-                    <span style="background: #FFD700; color: #333; padding: 8px 16px; border-radius: 20px;">⭐ 500 نقطة ⭐</span>
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                    <span style="background: #FF6B6B; padding: 8px 16px; border-radius: 20px;">0 ⭐</span>
+                    <span style="background: #4ECDC4; padding: 8px 16px; border-radius: 20px;">5 نقطة</span>
+                    <span style="background: #45B7D1; padding: 8px 16px; border-radius: 20px;">10 نقطة</span>
+                    <span style="background: #96CEB4; padding: 8px 16px; border-radius: 20px;">15 نقطة</span>
+                    <span style="background: #FFE194; padding: 8px 16px; border-radius: 20px;">25 نقطة</span>
+                    <span style="background: #B8A9C9; padding: 8px 16px; border-radius: 20px;">50 نقطة</span>
+                    <span style="background: #FFD700; padding: 8px 16px; border-radius: 20px;">80 نقطة</span>
                 </div>
             </div>
         </div>
         
-        <!-- صفحة الإعلانات (3 فيديوهات) -->
+        <!-- صفحة الإعلانات المحسّنة -->
         <div id="adsPage" class="page">
             <h2 style="text-align: center; margin-bottom: 20px;">📺 مشاهدة إعلانات</h2>
             
@@ -527,13 +533,13 @@
             
             <div class="ad-buttons">
                 <button class="btn btn-video1" id="videoAdBtn1" onclick="tryAd(1)">
-                    <span>▶️</span> شاهد إعلان فيديو 1 (6113667)
+                    <span>▶️</span> إعلان رقم 1 - انقر للمشاهدة
                 </button>
                 <button class="btn btn-video2" id="videoAdBtn2" onclick="tryAd(2)">
-                    <span>▶️</span> شاهد إعلان فيديو 2 (6113781)
+                    <span>▶️</span> إعلان رقم 2 - انقر للمشاهدة
                 </button>
                 <button class="btn btn-video3" id="videoAdBtn3" onclick="tryAd(3)">
-                    <span>▶️</span> شاهد إعلان فيديو 3 (6113782)
+                    <span>▶️</span> إعلان رقم 3 - انقر للمشاهدة
                 </button>
             </div>
             
@@ -542,39 +548,60 @@
             </button>
             
             <div class="status" id="status">
-                ⏳ اضغط على أي إعلان للمشاهدة
+                ⏳ اختر إعلاناً للمشاهدة
             </div>
         </div>
         
-        <!-- صفحة الحساب -->
+        <!-- صفحة الحساب والمحافظ -->
         <div id="profilePage" class="page">
             <h2 style="text-align: center; margin-bottom: 20px;">👤 حسابي</h2>
             
             <div class="settings-list">
                 <div class="setting-item">
-                    <span>🔔 إشعارات</span>
-                    <div class="toggle" onclick="this.classList.toggle('active')"></div>
-                </div>
-                <div class="setting-item">
-                    <span>🌙 الوضع الليلي</span>
-                    <div class="toggle" onclick="this.classList.toggle('active')"></div>
-                </div>
-                <div class="setting-item">
-                    <span>📞 اللغة</span>
-                    <span>العربية</span>
-                </div>
-                <div class="setting-item">
-                    <span>📊 إجمالي الأرباح</span>
-                    <span id="totalEarned">0 نقطة</span>
-                </div>
-                <div class="setting-item">
-                    <span>📱 معرف المستخدم</span>
+                    <span>🆔 معرف المستخدم</span>
                     <span id="userId">...</span>
+                </div>
+                <div class="setting-item">
+                    <span>💰 الرصيد الحالي</span>
+                    <span id="profilePoints">0</span>
+                </div>
+                <div class="setting-item">
+                    <span>🎁 إجمالي الأرباح</span>
+                    <span id="totalEarned">0</span>
+                </div>
+            </div>
+            
+            <h3 style="margin: 20px 0 10px;">💳 المحافظ الإلكترونية</h3>
+            
+            <div class="wallet-grid">
+                <div class="wallet-item" onclick="selectWallet('vodafone')">
+                    <div class="wallet-icon">📱</div>
+                    <div class="wallet-name">فودافون كاش</div>
+                </div>
+                <div class="wallet-item" onclick="selectWallet('orange')">
+                    <div class="wallet-icon">🟠</div>
+                    <div class="wallet-name">أورانج كاش</div>
+                </div>
+                <div class="wallet-item" onclick="selectWallet('etisalat')">
+                    <div class="wallet-icon">📞</div>
+                    <div class="wallet-name">اتصالات كاش</div>
+                </div>
+                <div class="wallet-item" onclick="selectWallet('we')">
+                    <div class="wallet-icon">💳</div>
+                    <div class="wallet-name">وي كاش</div>
+                </div>
+                <div class="wallet-item" onclick="selectWallet('instapay')">
+                    <div class="wallet-icon">⚡</div>
+                    <div class="wallet-name">إنستا باي</div>
+                </div>
+                <div class="wallet-item" onclick="selectWallet('paypal')">
+                    <div class="wallet-icon">🌐</div>
+                    <div class="wallet-name">PayPal</div>
                 </div>
             </div>
             
             <div style="margin-top: 20px; text-align: center;">
-                <button class="btn" style="background: #f44336; color: white;" onclick="logout()">
+                <button class="btn" style="background: linear-gradient(135deg, #f44336, #d32f2f); color: white;" onclick="logout()">
                     🚪 تسجيل الخروج
                 </button>
             </div>
@@ -583,38 +610,48 @@
     
     <script>
         // =========== إعدادات API ===========
-        // الرابط ده هو رابط موقعك (عدله لو مختلف)
         const API_URL = 'https://earn-mini-appuprailwayapp-production.up.railway.app';
         let userId = null;
         
-        // جلب معرف المستخدم من تليجرام
-        if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user) {
-            userId = Telegram.WebApp.initDataUnsafe.user.id;
-            console.log('✅ User ID:', userId);
-            document.getElementById('userId').textContent = userId;
-            loadUserData();
-        } else {
-            // للتجربة خارج تليجرام
-            userId = prompt('أدخل معرف المستخدم للتجربة:') || '123456';
-            document.getElementById('userId').textContent = userId;
-            loadUserData();
-        }
-        
-        // =========== بيانات المستخدم (من API) ===========
+        // =========== بيانات المستخدم ===========
         let totalPoints = 0;
         let todayAds = 0;
         let streak = 0;
         let maxAds = 400;
         
-        // عناصر HTML
+        // =========== عناصر HTML ===========
         const totalPointsEl = document.getElementById('totalPoints');
         const todayCountEl = document.getElementById('todayCount');
         const streakCountEl = document.getElementById('streakCount');
         const invitesCountEl = document.getElementById('invitesCount');
         const wheelBalanceEl = document.getElementById('wheelBalance');
+        const profilePointsEl = document.getElementById('profilePoints');
         const totalEarnedEl = document.getElementById('totalEarned');
+        const userIdEl = document.getElementById('userId');
+        const timerEl = document.getElementById('timer');
+        const progressEl = document.getElementById('progress');
+        const statusEl = document.getElementById('status');
+        const claimBtn = document.getElementById('claimBtn');
+        const videoAdBtn1 = document.getElementById('videoAdBtn1');
+        const videoAdBtn2 = document.getElementById('videoAdBtn2');
+        const videoAdBtn3 = document.getElementById('videoAdBtn3');
+        const spinBtn = document.getElementById('spinBtn');
+        const watchAdSpinBtn = document.getElementById('watchAdSpinBtn');
+        const wheelResultEl = document.getElementById('wheelResult');
         
-        // =========== تحميل بيانات المستخدم من API ===========
+        // =========== الحصول على معرف المستخدم ===========
+        if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user) {
+            userId = Telegram.WebApp.initDataUnsafe.user.id;
+            console.log('✅ User ID:', userId);
+            if (userIdEl) userIdEl.textContent = userId;
+            loadUserData();
+        } else {
+            userId = prompt('أدخل معرف المستخدم للتجربة:') || '123456';
+            if (userIdEl) userIdEl.textContent = userId;
+            loadUserData();
+        }
+        
+        // =========== تحميل بيانات المستخدم ===========
         async function loadUserData() {
             try {
                 const response = await fetch(`${API_URL}/api/user/${userId}`);
@@ -623,25 +660,18 @@
                 if (data.success) {
                     totalPoints = data.points;
                     todayAds = data.ads_today;
-                    maxAds = data.max_ads;
-                    
-                    // التحقق من الحظر
-                    if (data.is_banned) {
-                        alert('⛔ لقد تم حظرك من استخدام هذا التطبيق.');
-                        document.body.innerHTML = '<h1 style="color:red; text-align:center;">⛔ أنت محظور</h1>';
-                        return;
-                    }
                     
                     updateUI();
                 } else {
-                    console.log('❌ فشل تحميل البيانات');
                     totalPointsEl.textContent = '0';
                     todayCountEl.textContent = '0';
+                    profilePointsEl.textContent = '0';
                 }
             } catch (error) {
                 console.error('❌ خطأ في الاتصال بالـ API:', error);
-                totalPointsEl.textContent = '?';
-                todayCountEl.textContent = '?';
+                totalPointsEl.textContent = '⚠️ خطأ';
+                todayCountEl.textContent = '⚠️';
+                profilePointsEl.textContent = '⚠️';
             }
         }
         
@@ -649,44 +679,10 @@
             totalPointsEl.textContent = totalPoints;
             todayCountEl.textContent = todayAds;
             streakCountEl.textContent = streak;
-            invitesCountEl.textContent = 0;
             if (wheelBalanceEl) wheelBalanceEl.textContent = totalPoints;
+            if (profilePointsEl) profilePointsEl.textContent = totalPoints + ' نقطة';
             if (totalEarnedEl) totalEarnedEl.textContent = totalPoints + ' نقطة';
         }
-        
-        // =========== إعدادات OnClickA ===========
-        let videoShow1 = null; // للإعلان 6113667
-        let videoShow2 = null; // للإعلان 6113781
-        let videoShow3 = null; // للإعلان 6113782
-        let currentAd = null;
-        let adWatched = false;
-        let timerInterval = null;
-        let timeLeft = 30;
-        let countdownActive = false;
-        
-        // تهيئة إعلان الفيديو الأول (6113667)
-        window.initCdTma?.({ id: '6113667' })
-            .then(show => {
-                videoShow1 = show;
-                console.log('✅ Video ad 1 (6113667) initialized');
-            })
-            .catch(e => console.log('❌ Video ad 1 init error:', e));
-        
-        // تهيئة إعلان الفيديو الثاني (6113781)
-        window.initCdTma?.({ id: '6113781' })
-            .then(show => {
-                videoShow2 = show;
-                console.log('✅ Video ad 2 (6113781) initialized');
-            })
-            .catch(e => console.log('❌ Video ad 2 init error:', e));
-        
-        // تهيئة إعلان الفيديو الثالث (6113782)
-        window.initCdTma?.({ id: '6113782' })
-            .then(show => {
-                videoShow3 = show;
-                console.log('✅ Video ad 3 (6113782) initialized');
-            })
-            .catch(e => console.log('❌ Video ad 3 init error:', e));
         
         // =========== التنقل بين الصفحات ===========
         const pages = {
@@ -709,7 +705,7 @@
             pages[pageName].classList.add('active');
         }
         
-        // =========== تسجيل يومي (مع API) ===========
+        // =========== تسجيل يومي ===========
         async function dailyCheckin() {
             try {
                 const response = await fetch(`${API_URL}/api/daily_checkin`, {
@@ -720,10 +716,10 @@
                 
                 const data = await response.json();
                 if (data.success) {
-                    totalPoints += 3;
+                    totalPoints += 5;
                     streak = data.streak;
                     updateUI();
-                    alert(`✅ تم التسجيل! +3 نقاط (سلسلة: ${data.streak})`);
+                    alert(`✅ تم التسجيل! +5 نقاط (سلسلة: ${data.streak})`);
                 } else {
                     alert('❌ ' + (data.error || 'فشل التسجيل'));
                 }
@@ -733,32 +729,41 @@
             }
         }
         
-        // =========== دعوة صديق (رابط خاص) ===========
+        // =========== دعوة صديق ===========
         function inviteFriend() {
             const inviteLink = `https://t.me/share/url?url=https://t.me/YourTapEarnBot?start=invite_${userId}&text=🎁 انضم إلي في بوت الربح الذكي واكسب نقاط!`;
             window.open(inviteLink, '_blank');
-            
-            setTimeout(() => {
-                if (confirm('هل قام صديقك بالتسجيل بالفعل عبر الرابط؟')) {
-                    // في الواقع، البوت هو اللي هيضيف النقاط لما الصديق يسجل
-                    alert('👥 سيتم إضافة النقاط بعد تسجيل الصديق.');
-                }
-            }, 3000);
+            alert('👥 سيتم إضافة 80 نقطة بعد تسجيل الصديق.');
         }
         
-        // =========== عجلة الحظ المحسّنة ===========
+        // =========== اختيار المحفظة ===========
+        function selectWallet(wallet) {
+            const walletNames = {
+                'vodafone': 'فودافون كاش',
+                'orange': 'أورانج كاش',
+                'etisalat': 'اتصالات كاش',
+                'we': 'وي كاش',
+                'instapay': 'إنستا باي',
+                'paypal': 'PayPal'
+            };
+            
+            alert(`✅ تم اختيار ${walletNames[wallet]}. سيتم إتمام عملية السحب قريباً.`);
+        }
+        
+        // =========== عجلة الحظ المحسّنة (بدقة 100%) ===========
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
         
         const segments = [
-            { color: '#FF6B6B', label: '10', value: 10 },
-            { color: '#4ECDC4', label: '20', value: 20 },
-            { color: '#45B7D1', label: '50', value: 50 },
-            { color: '#96CEB4', label: '100', value: 100 },
-            { color: '#FFE194', label: '5', value: 5 },
-            { color: '#B8A9C9', label: '200', value: 200 },
-            { color: '#FFD700', label: '500', value: 500 }
+            { color: '#FF6B6B', label: '0', value: 0 },
+            { color: '#4ECDC4', label: '5', value: 5 },
+            { color: '#45B7D1', label: '10', value: 10 },
+            { color: '#96CEB4', label: '15', value: 15 },
+            { color: '#FFE194', label: '25', value: 25 },
+            { color: '#B8A9C9', label: '50', value: 50 },
+            { color: '#FFD700', label: '80', value: 80 }
         ];
+        
         let isSpinning = false;
         let currentRotation = 0;
         
@@ -799,12 +804,12 @@
         
         function spinWheel() {
             if (isSpinning) return;
-            if (totalPoints < 50) {
-                alert('❌ رصيدك غير كافٍ! تحتاج 50 نقطة للعب');
+            if (totalPoints < 20) {
+                alert('❌ رصيدك غير كافٍ! تحتاج 20 نقطة للعب');
                 return;
             }
             
-            totalPoints -= 50;
+            totalPoints -= 20;
             updateUI();
             startSpin();
         }
@@ -843,7 +848,20 @@
             }, 4000);
         }
         
-        // =========== نظام الإعلانات مع إعادة محاولة ===========
+        // =========== إعدادات OnClickA ===========
+        let videoShow1 = null;
+        let videoShow2 = null;
+        let videoShow3 = null;
+        let currentAd = null;
+        let adWatched = false;
+        let timerInterval = null;
+        let timeLeft = 30;
+        let countdownActive = false;
+        
+        window.initCdTma?.({ id: '6113667' }).then(show => videoShow1 = show).catch(() => {});
+        window.initCdTma?.({ id: '6113781' }).then(show => videoShow2 = show).catch(() => {});
+        window.initCdTma?.({ id: '6113782' }).then(show => videoShow3 = show).catch(() => {});
+        
         function tryAd(num) {
             if (countdownActive) {
                 alert('⏳ يوجد إعلان قيد المشاهدة حالياً');
@@ -855,13 +873,10 @@
                 return;
             }
             
-            let showFunc;
-            if (num === 1) showFunc = videoShow1;
-            else if (num === 2) showFunc = videoShow2;
-            else showFunc = videoShow3;
+            let showFunc = num === 1 ? videoShow1 : num === 2 ? videoShow2 : videoShow3;
             
             if (!showFunc) {
-                alert(`⚠️ إعلان ${num} غير متاح حالياً.`);
+                alert(`⚠️ الإعلان ${num} غير متاح حالياً.`);
                 return;
             }
             
@@ -877,9 +892,8 @@
                     statusEl.innerHTML = '📺 يتم تشغيل الإعلان...';
                     startCountdown();
                 })
-                .catch(e => {
-                    console.log(`❌ Video ad ${num} error:`, e);
-                    statusEl.innerHTML = '❌ حدث خطأ في تشغيل الإعلان';
+                .catch(() => {
+                    statusEl.innerHTML = '❌ حدث خطأ';
                     resetButtons();
                 });
         }
@@ -903,7 +917,7 @@
                     countdownActive = false;
                     adWatched = true;
                     
-                    statusEl.innerHTML = '✅ تمت المشاهدة! اضغط على استلام نقاطك';
+                    statusEl.innerHTML = '✅ تمت المشاهدة! اضغط استلام النقاط';
                     claimBtn.classList.remove('hidden');
                     
                     videoAdBtn1.disabled = false;
@@ -933,7 +947,7 @@
                     updateUI();
                     
                     claimBtn.classList.add('hidden');
-                    statusEl.innerHTML = '✅ تم إضافة نقطة! شكراً لمشاهدتك الإعلان';
+                    statusEl.innerHTML = '✅ تم إضافة نقطة!';
                     
                     adWatched = false;
                     currentAd = null;
@@ -953,10 +967,10 @@
         }
         
         function logout() {
-            if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+            if (confirm('هل أنت متأكد؟')) {
                 window.location.reload();
             }
         }
     </script>
 </body>
-    </html>
+</html>
