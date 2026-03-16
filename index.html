@@ -15,15 +15,15 @@ button:disabled{background:#64748b;}
 .card{background:#1e293b;padding:15px;border-radius:12px;margin-bottom:10px;}
 #ad-container{display:flex;justify-content:space-between;margin-bottom:15px;}
 .ad-box{width:30%;height:120px;background:white;border-radius:12px;overflow:hidden;}
-#wheel{width:220px;height:220px;border-radius:50%;border:6px solid white;margin:auto;display:flex;align-items:center;justify-content:center;font-size:22px;background:conic-gradient(gold 0deg 60deg,green 60deg 120deg,orange 120deg 180deg,red 180deg 240deg,blue 240deg 300deg,purple 300deg 360deg);}
+#wheel{width:220px;height:220px;border-radius:50%;border:6px solid white;margin:auto;display:flex;align-items:center;justify-content:center;font-size:22px;background:conic-gradient(gold 0deg 72deg,green 72deg 144deg,orange 144deg 216deg,red 216deg 288deg,blue 288deg 360deg);}
 #points{font-size:20px;margin:10px;}
+#wheel-value{font-size:28px;font-weight:bold;margin-top:10px;}
 </style>
 </head>
 <body>
 <div class="container">
 <h1>💰 Earn Mini App</h1>
 <div id="points">نقاطك: <span id="point-value">0</span></div>
-
 <div id="ad-container">
 <div class="ad-box" id="ad1"></div>
 <div class="ad-box" id="ad2"></div>
@@ -31,20 +31,19 @@ button:disabled{background:#64748b;}
 </div>
 
 <div class="card">
-<button id="spinBtn">🎡 لف العجلة</button>
+<button id="spinBtn">🎡 لف العجلة (3 نقاط لكل لفة)</button>
 <button onclick="dailyCheckin()">🎁 تسجيل يومي</button>
 <button onclick="inviteFriends()">👥 دعوة أصدقاء</button>
 <button onclick="withdrawPoints()">💳 سحب أرباح</button>
 </div>
 
 <div id="wheel">🎡</div>
-
+<div id="wheel-value">0</div>
 </div>
 
 <script>
 const tg = window.Telegram.WebApp;
-tg.expand();
-tg.ready();
+tg.expand(); tg.ready();
 
 // ---------------- ADS ----------------
 const spotIDs = ['6113782','6113667','6113781'];
@@ -57,15 +56,20 @@ spotIDs.forEach((id,i)=>{
 let points = 0;
 document.getElementById("point-value").innerText = points;
 
+// مشاهدة اعلان مع 15 ثانية انتظار
 function watchAd(index){
   if(!showAdArr[index]){
     alert("الاعلان لم يجهز بعد");
     return;
   }
   showAdArr[index]().then(()=>{
-    points += 5; // كل اعلان يعطي 5 نقاط للعجلة
-    document.getElementById("point-value").innerText = points;
-    Telegram.WebApp.sendData("watch_ad");
+    alert("📺 الإعلان انتهى! انتظر 15 ثانية ليتم إضافة النقاط...");
+    setTimeout(()=>{
+      points += 3; // كل اعلان يمنح 3 نقاط للعجلة
+      document.getElementById("point-value").innerText = points;
+      Telegram.WebApp.sendData("watch_ad");
+      alert("✅ تمت إضافة 3 نقاط!");
+    },15000); // 15 ثانية
   }).catch(e=>console.log(e));
 }
 
@@ -83,18 +87,21 @@ document.getElementById("spinBtn").onclick = spinWheel;
 
 function spinWheel(){
   if(spinning){alert("انتظر حتى انتهاء الدوران"); return;}
-  if(points<5){alert("لا توجد نقاط كافية! شاهد إعلان لتعبئة النقاط"); return;}
+  if(points<3){alert("⚠️ لا توجد نقاط كافية! شاهد إعلان لتعبئة النقاط"); return;}
   spinning = true;
-  points -=5;
+  points -=3;
   document.getElementById("point-value").innerText = points;
+
   let wheel = document.getElementById("wheel");
-  let deg = Math.floor(Math.random()*360)+720;
+  let deg = Math.floor(Math.random()*360)+720; // دوران عشوائي
   wheel.style.transition = "transform 3s";
   wheel.style.transform = "rotate("+deg+"deg)";
+  
   setTimeout(()=>{
-    let reward = Math.floor(Math.random()*5)+1; // نقاط عجلة 1-5
+    let reward = Math.floor(Math.random()*51); // من 0 الى 50 نقطة
     points += reward;
     document.getElementById("point-value").innerText = points;
+    document.getElementById("wheel-value").innerText = reward;
     Telegram.WebApp.sendData("wheel_"+reward);
     alert("🎡 ربحت "+reward+" نقاط");
     spinning = false;
@@ -117,8 +124,7 @@ function inviteFriends(){
 
 // ---------------- WITHDRAW ----------------
 function withdrawPoints(){
-  let amount = Math.floor(points/500*40); // تحويل تقريبي
-  if(points<875){ // 875 نقطة = الحد الأدنى 700ج تقريباً
+  if(points<875){ // الحد الأدنى 875 نقطة (~700ج)
     alert("⚠️ الحد الأدنى للسحب 875 نقطة (~700ج)");
     return;
   }
