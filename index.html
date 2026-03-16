@@ -3,37 +3,43 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Earn Mini App</title>
+<title>Earn App</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
 
 <style>
 
 body{
-font-family: Arial;
 background:#0f172a;
 color:white;
+font-family:Arial;
 text-align:center;
+margin:0;
 padding:20px;
 }
 
+.container{
+max-width:420px;
+margin:auto;
+}
+
 h1{
-margin-top:20px;
+margin-bottom:20px;
 }
 
 button{
 
-width:90%;
-max-width:300px;
-padding:15px;
-margin:10px;
+width:100%;
+padding:14px;
+margin:8px 0;
 
 border:none;
 border-radius:10px;
 
-font-size:18px;
+font-size:16px;
 
 background:#2563eb;
 color:white;
@@ -42,17 +48,44 @@ cursor:pointer;
 
 }
 
-button:hover{
-background:#1d4ed8;
+button:disabled{
+background:#64748b;
 }
 
 .card{
 
 background:#1e293b;
-padding:20px;
+padding:15px;
 border-radius:12px;
+margin-bottom:10px;
 
-margin-bottom:20px;
+}
+
+#wheel{
+
+width:220px;
+height:220px;
+
+border-radius:50%;
+
+border:6px solid white;
+
+margin:auto;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+font-size:22px;
+
+background:conic-gradient(
+gold 0deg 60deg,
+green 60deg 120deg,
+orange 120deg 180deg,
+red 180deg 240deg,
+blue 240deg 300deg,
+purple 300deg 360deg
+);
 
 }
 
@@ -62,25 +95,39 @@ margin-bottom:20px;
 
 <body>
 
+<div class="container">
+
 <h1>💰 Earn Mini App</h1>
 
 <div class="card">
-
-<p>اكسب النقاط عبر مشاهدة الإعلانات</p>
-
-</div>
 
 <button onclick="watchAd()">
 📺 مشاهدة إعلان
 </button>
 
 <button onclick="dailyCheckin()">
-✅ تسجيل يومي
+🎁 تسجيل يومي
+</button>
+
+<button onclick="spinWheel()">
+🎡 عجلة الحظ
+</button>
+
+<button onclick="inviteFriends()">
+👥 دعوة أصدقاء
 </button>
 
 <button onclick="checkBalance()">
 💰 عرض الرصيد
 </button>
+
+</div>
+
+<div id="wheel">
+🎡
+</div>
+
+</div>
 
 <script>
 
@@ -89,23 +136,110 @@ const tg = window.Telegram.WebApp
 tg.expand()
 tg.ready()
 
+// ---------------- ADS ----------------
+
+let showAd
+
+const spotIDs = [
+'6113782',
+'6113667',
+'6113781'
+]
+
+const randomSpot = spotIDs[Math.floor(Math.random()*spotIDs.length)]
+
+window.initCdTma?.({ id: randomSpot })
+.then(show => {
+
+showAd = show
+
+})
+.catch(e => console.log(e))
+
+
 function watchAd(){
 
-tg.showAlert("انتظر 15 ثانية بعد مشاهدة الإعلان")
+if(!showAd){
+
+alert("الاعلان لم يجهز بعد")
+
+return
+
+}
+
+showAd()
+
+.then(()=>{
 
 Telegram.WebApp.sendData("watch_ad")
 
+})
+
+.catch(e => console.log(e))
+
 }
+
+
+// ---------------- DAILY ----------------
 
 function dailyCheckin(){
 
 Telegram.WebApp.sendData("checkin")
 
+alert("تم تسجيل الدخول اليومي")
+
 }
+
+
+// ---------------- BALANCE ----------------
 
 function checkBalance(){
 
 Telegram.WebApp.sendData("balance")
+
+}
+
+
+// ---------------- REFERRAL ----------------
+
+function inviteFriends(){
+
+Telegram.WebApp.sendData("refer")
+
+alert("شارك رابط الدعوة مع أصدقائك")
+
+}
+
+
+// ---------------- WHEEL ----------------
+
+let spinning = false
+
+function spinWheel(){
+
+if(spinning) return
+
+spinning = true
+
+let wheel = document.getElementById("wheel")
+
+let deg = Math.floor(Math.random()*360)+720
+
+wheel.style.transition = "transform 3s"
+
+wheel.style.transform = "rotate("+deg+"deg)"
+
+setTimeout(()=>{
+
+let reward = Math.floor(Math.random()*10)+1
+
+Telegram.WebApp.sendData("wheel_"+reward)
+
+alert("ربحت "+reward+" نقاط")
+
+spinning = false
+
+},3000)
 
 }
 
