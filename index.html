@@ -1,249 +1,134 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Earn App</title>
-
+<title>💰 Earn Mini App</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
-
 <style>
-
-body{
-background:#0f172a;
-color:white;
-font-family:Arial;
-text-align:center;
-margin:0;
-padding:20px;
-}
-
-.container{
-max-width:420px;
-margin:auto;
-}
-
-h1{
-margin-bottom:20px;
-}
-
-button{
-
-width:100%;
-padding:14px;
-margin:8px 0;
-
-border:none;
-border-radius:10px;
-
-font-size:16px;
-
-background:#2563eb;
-color:white;
-
-cursor:pointer;
-
-}
-
-button:disabled{
-background:#64748b;
-}
-
-.card{
-
-background:#1e293b;
-padding:15px;
-border-radius:12px;
-margin-bottom:10px;
-
-}
-
-#wheel{
-
-width:220px;
-height:220px;
-
-border-radius:50%;
-
-border:6px solid white;
-
-margin:auto;
-
-display:flex;
-align-items:center;
-justify-content:center;
-
-font-size:22px;
-
-background:conic-gradient(
-gold 0deg 60deg,
-green 60deg 120deg,
-orange 120deg 180deg,
-red 180deg 240deg,
-blue 240deg 300deg,
-purple 300deg 360deg
-);
-
-}
-
+body {background:#0f172a;color:white;font-family:Arial;text-align:center;padding:15px;}
+.container {max-width:480px;margin:auto;}
+h1 {margin-bottom:20px;}
+button{width:100%;padding:14px;margin:8px 0;border:none;border-radius:10px;font-size:16px;background:#2563eb;color:white;cursor:pointer;}
+button:disabled{background:#64748b;}
+.card{background:#1e293b;padding:15px;border-radius:12px;margin-bottom:10px;}
+#ad-container{display:flex;justify-content:space-between;margin-bottom:15px;}
+.ad-box{width:30%;height:120px;background:white;border-radius:12px;overflow:hidden;}
+#wheel{width:220px;height:220px;border-radius:50%;border:6px solid white;margin:auto;display:flex;align-items:center;justify-content:center;font-size:22px;background:conic-gradient(gold 0deg 60deg,green 60deg 120deg,orange 120deg 180deg,red 180deg 240deg,blue 240deg 300deg,purple 300deg 360deg);}
+#points{font-size:20px;margin:10px;}
 </style>
-
 </head>
-
 <body>
-
 <div class="container">
-
 <h1>💰 Earn Mini App</h1>
+<div id="points">نقاطك: <span id="point-value">0</span></div>
+
+<div id="ad-container">
+<div class="ad-box" id="ad1"></div>
+<div class="ad-box" id="ad2"></div>
+<div class="ad-box" id="ad3"></div>
+</div>
 
 <div class="card">
-
-<button onclick="watchAd()">
-📺 مشاهدة إعلان
-</button>
-
-<button onclick="dailyCheckin()">
-🎁 تسجيل يومي
-</button>
-
-<button onclick="spinWheel()">
-🎡 عجلة الحظ
-</button>
-
-<button onclick="inviteFriends()">
-👥 دعوة أصدقاء
-</button>
-
-<button onclick="checkBalance()">
-💰 عرض الرصيد
-</button>
-
+<button id="spinBtn">🎡 لف العجلة</button>
+<button onclick="dailyCheckin()">🎁 تسجيل يومي</button>
+<button onclick="inviteFriends()">👥 دعوة أصدقاء</button>
+<button onclick="withdrawPoints()">💳 سحب أرباح</button>
 </div>
 
-<div id="wheel">
-🎡
-</div>
+<div id="wheel">🎡</div>
 
 </div>
 
 <script>
-
-const tg = window.Telegram.WebApp
-
-tg.expand()
-tg.ready()
+const tg = window.Telegram.WebApp;
+tg.expand();
+tg.ready();
 
 // ---------------- ADS ----------------
+const spotIDs = ['6113782','6113667','6113781'];
+const showAdArr = [];
 
-let showAd
+spotIDs.forEach((id,i)=>{
+  window.initCdTma?.({id:id}).then(show=>{showAdArr[i]=show}).catch(e=>console.log(e));
+});
 
-const spotIDs = [
-'6113782',
-'6113667',
-'6113781'
-]
+let points = 0;
+document.getElementById("point-value").innerText = points;
 
-const randomSpot = spotIDs[Math.floor(Math.random()*spotIDs.length)]
-
-window.initCdTma?.({ id: randomSpot })
-.then(show => {
-
-showAd = show
-
-})
-.catch(e => console.log(e))
-
-
-function watchAd(){
-
-if(!showAd){
-
-alert("الاعلان لم يجهز بعد")
-
-return
-
+function watchAd(index){
+  if(!showAdArr[index]){
+    alert("الاعلان لم يجهز بعد");
+    return;
+  }
+  showAdArr[index]().then(()=>{
+    points += 5; // كل اعلان يعطي 5 نقاط للعجلة
+    document.getElementById("point-value").innerText = points;
+    Telegram.WebApp.sendData("watch_ad");
+  }).catch(e=>console.log(e));
 }
 
-showAd()
-
-.then(()=>{
-
-Telegram.WebApp.sendData("watch_ad")
-
-})
-
-.catch(e => console.log(e))
-
-}
-
-
-// ---------------- DAILY ----------------
-
-function dailyCheckin(){
-
-Telegram.WebApp.sendData("checkin")
-
-alert("تم تسجيل الدخول اليومي")
-
-}
-
-
-// ---------------- BALANCE ----------------
-
-function checkBalance(){
-
-Telegram.WebApp.sendData("balance")
-
-}
-
-
-// ---------------- REFERRAL ----------------
-
-function inviteFriends(){
-
-Telegram.WebApp.sendData("refer")
-
-alert("شارك رابط الدعوة مع أصدقائك")
-
-}
-
+// انشاء أزرار تشغيل لكل إعلان
+spotIDs.forEach((id,i)=>{
+  let btn = document.createElement("button");
+  btn.innerText = "📺 مشاهدة إعلان " + (i+1);
+  btn.onclick = ()=>watchAd(i);
+  document.getElementById("ad"+(i+1)).appendChild(btn);
+});
 
 // ---------------- WHEEL ----------------
-
-let spinning = false
+let spinning = false;
+document.getElementById("spinBtn").onclick = spinWheel;
 
 function spinWheel(){
-
-if(spinning) return
-
-spinning = true
-
-let wheel = document.getElementById("wheel")
-
-let deg = Math.floor(Math.random()*360)+720
-
-wheel.style.transition = "transform 3s"
-
-wheel.style.transform = "rotate("+deg+"deg)"
-
-setTimeout(()=>{
-
-let reward = Math.floor(Math.random()*10)+1
-
-Telegram.WebApp.sendData("wheel_"+reward)
-
-alert("ربحت "+reward+" نقاط")
-
-spinning = false
-
-},3000)
-
+  if(spinning){alert("انتظر حتى انتهاء الدوران"); return;}
+  if(points<5){alert("لا توجد نقاط كافية! شاهد إعلان لتعبئة النقاط"); return;}
+  spinning = true;
+  points -=5;
+  document.getElementById("point-value").innerText = points;
+  let wheel = document.getElementById("wheel");
+  let deg = Math.floor(Math.random()*360)+720;
+  wheel.style.transition = "transform 3s";
+  wheel.style.transform = "rotate("+deg+"deg)";
+  setTimeout(()=>{
+    let reward = Math.floor(Math.random()*5)+1; // نقاط عجلة 1-5
+    points += reward;
+    document.getElementById("point-value").innerText = points;
+    Telegram.WebApp.sendData("wheel_"+reward);
+    alert("🎡 ربحت "+reward+" نقاط");
+    spinning = false;
+  },3000);
 }
 
-</script>
+// ---------------- DAILY CHECKIN ----------------
+function dailyCheckin(){
+  Telegram.WebApp.sendData("checkin");
+  points += 5;
+  document.getElementById("point-value").innerText = points;
+  alert("🎁 تسجيل يومي +5 نقاط");
+}
 
+// ---------------- REFERRAL ----------------
+function inviteFriends(){
+  Telegram.WebApp.sendData("refer");
+  alert("شارك رابط الدعوة مع أصدقائك");
+}
+
+// ---------------- WITHDRAW ----------------
+function withdrawPoints(){
+  let amount = Math.floor(points/500*40); // تحويل تقريبي
+  if(points<875){ // 875 نقطة = الحد الأدنى 700ج تقريباً
+    alert("⚠️ الحد الأدنى للسحب 875 نقطة (~700ج)");
+    return;
+  }
+  let wallet = prompt("اختر المحفظة: Orange, Etisalat, Vodafone, PayPal");
+  if(!wallet){return;}
+  Telegram.WebApp.sendData("withdraw_"+wallet+"_"+points);
+  alert("تم طلب السحب إلى "+wallet+" بمقدار "+points+" نقطة");
+  points = 0;
+  document.getElementById("point-value").innerText = points;
+}
+</script>
 </body>
 </html>
