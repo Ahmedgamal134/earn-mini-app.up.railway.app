@@ -15,21 +15,28 @@
         body {
             background: linear-gradient(145deg, #0f0c29, #302b63, #24243e);
             min-height: 100vh;
-            color: white;
             display: flex;
             justify-content: center;
             align-items: center;
+            color: white;
+            padding: 16px;
         }
         
         .container {
             max-width: 480px;
             width: 100%;
-            padding: 20px;
-            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         h1 {
-            font-size: 32px;
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
             margin-bottom: 20px;
             background: linear-gradient(135deg, #ffd700, #ffa500);
             -webkit-background-clip: text;
@@ -38,10 +45,10 @@
         
         .balance-card {
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 20px;
             margin-bottom: 20px;
+            text-align: center;
         }
         
         .balance-title {
@@ -56,20 +63,84 @@
             margin-top: 5px;
         }
         
-        .wheel-wrapper {
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #ffd700;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        .wheel-container {
             position: relative;
             width: 280px;
             height: 280px;
             margin: 20px auto;
         }
         
-        canvas {
+        /* العجلة مصممة باستخدام conic-gradient (بدون Canvas) */
+        .wheel {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-            transition: transform 4s ease-out;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+            /* 7 قطاعات ملونة */
+            background: conic-gradient(
+                #FF6B6B 0deg 51.43deg,   /* 0 نقاط */
+                #4ECDC4 51.43deg 102.86deg, /* 5 نقاط */
+                #45B7D1 102.86deg 154.29deg, /* 10 نقاط */
+                #96CEB4 154.29deg 205.72deg, /* 15 نقاط */
+                #FFE194 205.72deg 257.15deg, /* 25 نقاط */
+                #B8A9C9 257.15deg 308.58deg, /* 50 نقاط */
+                #FFD700 308.58deg 360deg      /* 80 نقاط */
+            );
         }
+        
+        /* النصوص على العجلة */
+        .sector-texts {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .sector-text {
+            position: absolute;
+            width: 60px;
+            text-align: center;
+            font-weight: bold;
+            color: #000;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+            transform-origin: center;
+        }
+        
+        /* توزيع النصوص يدويًا */
+        .text-0 { top: 30px; left: 140px; transform: rotate(0deg); }
+        .text-5 { top: 40px; left: 190px; transform: rotate(51deg); }
+        .text-10 { top: 70px; left: 220px; transform: rotate(102deg); }
+        .text-15 { top: 120px; left: 230px; transform: rotate(154deg); }
+        .text-25 { top: 170px; left: 210px; transform: rotate(205deg); }
+        .text-50 { top: 200px; left: 160px; transform: rotate(257deg); }
+        .text-80 { top: 190px; left: 100px; transform: rotate(308deg); }
         
         .pointer {
             position: absolute;
@@ -83,30 +154,6 @@
             border-top: 30px solid #ffd700;
             z-index: 10;
             filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
-        }
-        
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            margin: 20px 0;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 15px;
-        }
-        
-        .stat {
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #ffd700;
-        }
-        
-        .stat-label {
-            font-size: 12px;
-            opacity: 0.7;
         }
         
         .spin-btn {
@@ -159,6 +206,14 @@
             font-weight: 600;
             color: #333;
         }
+        
+        .prize-item:nth-child(1) { background: #FF6B6B; }
+        .prize-item:nth-child(2) { background: #4ECDC4; }
+        .prize-item:nth-child(3) { background: #45B7D1; }
+        .prize-item:nth-child(4) { background: #96CEB4; }
+        .prize-item:nth-child(5) { background: #FFE194; }
+        .prize-item:nth-child(6) { background: #B8A9C9; }
+        .prize-item:nth-child(7) { background: #FFD700; }
     </style>
 </head>
 <body>
@@ -170,19 +225,28 @@
             <div class="balance-amount" id="totalPoints">0</div>
         </div>
         
-        <div class="stats">
-            <div class="stat">
+        <div class="stats-row">
+            <div class="stat-item">
                 <div class="stat-value" id="wheelBalance">0</div>
                 <div class="stat-label">نقاطك</div>
             </div>
-            <div class="stat">
+            <div class="stat-item">
                 <div class="stat-value" id="wheelCost">20</div>
                 <div class="stat-label">تكلفة اللعب</div>
             </div>
         </div>
         
-        <div class="wheel-wrapper">
-            <canvas id="wheelCanvas" width="280" height="280"></canvas>
+        <div class="wheel-container">
+            <div class="wheel" id="wheel"></div>
+            <div class="sector-texts">
+                <span class="sector-text text-0">0</span>
+                <span class="sector-text text-5">5</span>
+                <span class="sector-text text-10">10</span>
+                <span class="sector-text text-15">15</span>
+                <span class="sector-text text-25">25</span>
+                <span class="sector-text text-50">50</span>
+                <span class="sector-text text-80">80</span>
+            </div>
             <div class="pointer"></div>
         </div>
         
@@ -192,23 +256,25 @@
             🎉 حصلت على <span id="prizeValue">0</span> نقطة!
         </div>
         
-        <div class="prize-grid" id="prizeGrid"></div>
+        <div class="prize-grid" id="prizeGrid">
+            <span class="prize-item">0 نقطة</span>
+            <span class="prize-item">5 نقاط</span>
+            <span class="prize-item">10 نقاط</span>
+            <span class="prize-item">15 نقطة</span>
+            <span class="prize-item">25 نقطة</span>
+            <span class="prize-item">50 نقطة</span>
+            <span class="prize-item">80 نقطة</span>
+        </div>
     </div>
     
     <script>
-        // =========== إعدادات العجلة ===========
-        const SEGMENTS = [
-            { color: '#FF6B6B', label: '0', value: 0 },
-            { color: '#4ECDC4', label: '5', value: 5 },
-            { color: '#45B7D1', label: '10', value: 10 },
-            { color: '#96CEB4', label: '15', value: 15 },
-            { color: '#FFE194', label: '25', value: 25 },
-            { color: '#B8A9C9', label: '50', value: 50 },
-            { color: '#FFD700', label: '80', value: 80 }
-        ];
+        // =========== قيم الجوائز بالترتيب (من 0° إلى 360°) ===========
+        const PRIZES = [0, 5, 10, 15, 25, 50, 80];
         
         // =========== بيانات المستخدم ===========
         let totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
+        let currentRotation = 0;
+        let isSpinning = false;
         
         // =========== عناصر HTML ===========
         const totalPointsEl = document.getElementById('totalPoints');
@@ -216,14 +282,9 @@
         const spinBtn = document.getElementById('spinBtn');
         const prizeMessage = document.getElementById('prizeMessage');
         const prizeValue = document.getElementById('prizeValue');
-        const canvas = document.getElementById('wheelCanvas');
-        const ctx = canvas.getContext('2d');
+        const wheel = document.getElementById('wheel');
         
-        // =========== متغيرات العجلة ===========
-        let isSpinning = false;
-        let currentRotation = 0;
-        
-        // =========== تحديث الرصيد ===========
+        // تحديث الرصيد
         function updateUI() {
             totalPointsEl.textContent = totalPoints;
             wheelBalanceEl.textContent = totalPoints;
@@ -231,71 +292,19 @@
         }
         updateUI();
         
-        // =========== رسم العجلة ===========
-        function drawWheel() {
-            const angleStep = (Math.PI * 2) / SEGMENTS.length;
-            ctx.clearRect(0, 0, 280, 280);
+        // =========== حساب الجائزة بناءً على الزاوية الفعلية ===========
+        function getPrizeFromAngle(angle) {
+            // تطبيع الزاوية بين 0 و 360
+            const normalizedAngle = ((angle % 360) + 360) % 360;
             
-            SEGMENTS.forEach((seg, index) => {
-                const startAngle = index * angleStep;
-                const endAngle = startAngle + angleStep;
-                
-                // رسم القطاع
-                ctx.beginPath();
-                ctx.fillStyle = seg.color;
-                ctx.moveTo(140, 140);
-                ctx.arc(140, 140, 140, startAngle, endAngle);
-                ctx.closePath();
-                ctx.fill();
-                
-                // رسم الخطوط البيضاء
-                ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(140, 140);
-                ctx.lineTo(140 + Math.cos(startAngle) * 140, 140 + Math.sin(startAngle) * 140);
-                ctx.stroke();
-                
-                // كتابة القيمة
-                ctx.save();
-                ctx.translate(140, 140);
-                ctx.rotate(startAngle + angleStep / 2);
-                ctx.textAlign = 'center';
-                ctx.fillStyle = '#000';
-                ctx.font = 'bold 18px Arial';
-                ctx.fillText(seg.label, 80, 0);
-                ctx.restore();
-            });
-        }
-        drawWheel();
-        
-        // =========== رسم شبكة الجوائز ===========
-        const prizeGrid = document.getElementById('prizeGrid');
-        SEGMENTS.forEach(seg => {
-            const item = document.createElement('span');
-            item.className = 'prize-item';
-            item.style.backgroundColor = seg.color;
-            item.textContent = seg.label + ' نقطة';
-            prizeGrid.appendChild(item);
-        });
-        
-        // =========== الحصول على الجائزة بدقة 100% ===========
-        function getPrize() {
-            // حساب الزاوية النهائية وتطبيعها بين 0 و 360
-            const finalAngle = ((currentRotation % 360) + 360) % 360;
-            
-            // زاوية المؤشر هي الزاوية الحالية + 90 درجة (لأن المؤشر في الأعلى)
-            const pointerAngle = (finalAngle + 90) % 360;
-            
-            // حجم القطاع الواحد
-            const segmentAngle = 360 / SEGMENTS.length;
-            
-            // حساب رقم القطاع (من 0 إلى 6)
-            const index = Math.floor(pointerAngle / segmentAngle) % SEGMENTS.length;
-            
-            console.log(`الزاوية: ${finalAngle.toFixed(2)}°, المؤشر: ${pointerAngle.toFixed(2)}°, القطاع: ${index}, القيمة: ${SEGMENTS[index].value}`);
-            
-            return SEGMENTS[index];
+            // تحديد القطاع بناءً على الزاوية
+            if (normalizedAngle >= 0 && normalizedAngle < 51.43) return PRIZES[0];
+            if (normalizedAngle >= 51.43 && normalizedAngle < 102.86) return PRIZES[1];
+            if (normalizedAngle >= 102.86 && normalizedAngle < 154.29) return PRIZES[2];
+            if (normalizedAngle >= 154.29 && normalizedAngle < 205.72) return PRIZES[3];
+            if (normalizedAngle >= 205.72 && normalizedAngle < 257.15) return PRIZES[4];
+            if (normalizedAngle >= 257.15 && normalizedAngle < 308.58) return PRIZES[5];
+            return PRIZES[6]; // 308.58 - 360
         }
         
         // =========== تدوير العجلة ===========
@@ -315,27 +324,36 @@
             spinBtn.disabled = true;
             prizeMessage.classList.add('hidden');
             
-            // إضافة دوران عشوائي (5 إلى 8 لفات)
-            const randomSpins = Math.floor(Math.random() * 4) + 5; // 5-8 لفات
-            const spinAngle = randomSpins * 360 + Math.random() * 360;
-            currentRotation += spinAngle;
+            // عدد اللفات (5-8 لفات)
+            const spins = 5 + Math.floor(Math.random() * 4);
+            // زاوية عشوائية إضافية (0-360)
+            const randomAngle = Math.random() * 360;
+            // الزاوية النهائية = اللفات × 360 + عشوائي
+            const targetAngle = spins * 360 + randomAngle;
+            currentRotation += targetAngle;
             
-            canvas.style.transform = `rotate(${currentRotation}deg)`;
+            // تطبيق الدوران مع تأثير التباطؤ (cubic-bezier)
+            wheel.style.transition = 'transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)';
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
             
-            // بعد انتهاء الدوران
+            // بعد انتهاء الدوران (4 ثواني)
             setTimeout(() => {
-                const prize = getPrize();
+                // إزالة الانتقال (transition) لمنع أي تحرك إضافي
+                wheel.style.transition = '';
                 
-                totalPoints += prize.value;
+                // حساب الجائزة
+                const prize = getPrizeFromAngle(currentRotation);
+                
+                // إضافة النقاط
+                totalPoints += prize;
                 updateUI();
                 
-                prizeValue.textContent = prize.value;
+                // عرض النتيجة
+                prizeValue.textContent = prize;
                 prizeMessage.classList.remove('hidden');
                 
-                setTimeout(() => {
-                    isSpinning = false;
-                    spinBtn.disabled = false;
-                }, 2000);
+                isSpinning = false;
+                spinBtn.disabled = false;
                 
             }, 4000);
         }
