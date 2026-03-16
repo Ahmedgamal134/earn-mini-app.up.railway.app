@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>عجلة الحظ - بوت الربح الذكي</title>
+    
+    <!-- مكتبة OnClickA للإعلانات -->
+    <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -92,7 +96,6 @@
             margin: 20px auto;
         }
         
-        /* العجلة مصممة باستخدام conic-gradient (بدون Canvas) */
         .wheel {
             width: 100%;
             height: 100%;
@@ -101,19 +104,32 @@
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
-            /* 7 قطاعات ملونة */
             background: conic-gradient(
-                #FF6B6B 0deg 51.43deg,   /* 0 نقاط */
-                #4ECDC4 51.43deg 102.86deg, /* 5 نقاط */
-                #45B7D1 102.86deg 154.29deg, /* 10 نقاط */
-                #96CEB4 154.29deg 205.72deg, /* 15 نقاط */
-                #FFE194 205.72deg 257.15deg, /* 25 نقاط */
-                #B8A9C9 257.15deg 308.58deg, /* 50 نقاط */
-                #FFD700 308.58deg 360deg      /* 80 نقاط */
+                #FF6B6B 0deg 51.43deg,
+                #4ECDC4 51.43deg 102.86deg,
+                #45B7D1 102.86deg 154.29deg,
+                #96CEB4 154.29deg 205.72deg,
+                #FFE194 205.72deg 257.15deg,
+                #B8A9C9 257.15deg 308.58deg,
+                #FFD700 308.58deg 360deg
             );
+            border: 4px solid rgba(255, 255, 255, 0.3);
         }
         
-        /* النصوص على العجلة */
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            z-index: 20;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            border: 2px solid #ffd700;
+        }
+        
         .sector-texts {
             position: absolute;
             top: 0;
@@ -129,11 +145,11 @@
             text-align: center;
             font-weight: bold;
             color: #000;
-            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+            text-shadow: 0 0 5px rgba(255,255,255,0.8);
             transform-origin: center;
+            font-size: 14px;
         }
         
-        /* توزيع النصوص يدويًا */
         .text-0 { top: 30px; left: 140px; transform: rotate(0deg); }
         .text-5 { top: 40px; left: 190px; transform: rotate(51deg); }
         .text-10 { top: 70px; left: 220px; transform: rotate(102deg); }
@@ -152,8 +168,14 @@
             border-left: 20px solid transparent;
             border-right: 20px solid transparent;
             border-top: 30px solid #ffd700;
-            z-index: 10;
+            z-index: 30;
             filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
         }
         
         .spin-btn {
@@ -161,14 +183,18 @@
             border: none;
             color: #333;
             font-weight: 700;
-            font-size: 20px;
-            padding: 16px 32px;
+            font-size: 18px;
+            padding: 16px;
             border-radius: 50px;
-            margin: 20px 0;
             cursor: pointer;
             box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
             transition: all 0.3s ease;
-            width: 100%;
+            flex: 1;
+        }
+        
+        .spin-btn.ad-btn {
+            background: linear-gradient(135deg, #6b8cff, #4a6cf7);
+            color: white;
         }
         
         .spin-btn:disabled {
@@ -180,12 +206,19 @@
             background: rgba(255, 215, 0, 0.2);
             border: 2px solid #ffd700;
             border-radius: 20px;
-            padding: 16px;
+            padding: 20px;
             margin: 20px 0;
             text-align: center;
             font-size: 24px;
             font-weight: 700;
             color: #ffd700;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
         
         .prize-message.hidden {
@@ -196,15 +229,17 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             margin: 20px 0;
         }
         
         .prize-item {
-            padding: 8px 16px;
+            padding: 8px 12px;
             border-radius: 20px;
             font-weight: 600;
             color: #333;
+            font-size: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
         .prize-item:nth-child(1) { background: #FF6B6B; }
@@ -214,6 +249,18 @@
         .prize-item:nth-child(5) { background: #FFE194; }
         .prize-item:nth-child(6) { background: #B8A9C9; }
         .prize-item:nth-child(7) { background: #FFD700; }
+        
+        .ads-count {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 14px;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .ads-count span {
+            color: #ffd700;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -232,12 +279,13 @@
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="wheelCost">20</div>
-                <div class="stat-label">تكلفة اللعب</div>
+                <div class="stat-label">تكلفة الدوران</div>
             </div>
         </div>
         
         <div class="wheel-container">
             <div class="wheel" id="wheel"></div>
+            <div class="wheel-center"></div>
             <div class="sector-texts">
                 <span class="sector-text text-0">0</span>
                 <span class="sector-text text-5">5</span>
@@ -250,36 +298,51 @@
             <div class="pointer"></div>
         </div>
         
-        <button class="spin-btn" id="spinBtn" onclick="spinWheel()">🎲 ابدأ الدوران (20 نقطة)</button>
+        <div class="ads-count">
+            📺 إعلانات اليوم: <span id="adsToday">0</span>/400
+        </div>
+        
+        <div class="button-group">
+            <button class="spin-btn" id="spinBtn" onclick="spinWheel(false)">🎲 دوران (20)</button>
+            <button class="spin-btn ad-btn" id="adSpinBtn" onclick="spinWithAd()">📺 دوران مجاني</button>
+        </div>
         
         <div id="prizeMessage" class="prize-message hidden">
             🎉 حصلت على <span id="prizeValue">0</span> نقطة!
         </div>
         
         <div class="prize-grid" id="prizeGrid">
-            <span class="prize-item">0 نقطة</span>
-            <span class="prize-item">5 نقاط</span>
-            <span class="prize-item">10 نقاط</span>
-            <span class="prize-item">15 نقطة</span>
-            <span class="prize-item">25 نقطة</span>
-            <span class="prize-item">50 نقطة</span>
-            <span class="prize-item">80 نقطة</span>
+            <span class="prize-item">0</span>
+            <span class="prize-item">5</span>
+            <span class="prize-item">10</span>
+            <span class="prize-item">15</span>
+            <span class="prize-item">25</span>
+            <span class="prize-item">50</span>
+            <span class="prize-item">80</span>
         </div>
     </div>
     
     <script>
-        // =========== قيم الجوائز بالترتيب (من 0° إلى 360°) ===========
+        // =========== إعدادات OnClickA ===========
+        let videoShow = null;
+        window.initCdTma?.({ id: '6113667' }).then(show => videoShow = show).catch(() => {});
+        
+        // =========== قيم الجوائز ===========
         const PRIZES = [0, 5, 10, 15, 25, 50, 80];
         
         // =========== بيانات المستخدم ===========
         let totalPoints = parseInt(localStorage.getItem('totalPoints') || '0');
+        let adsToday = parseInt(localStorage.getItem('adsToday') || '0');
         let currentRotation = 0;
         let isSpinning = false;
+        let pendingFreeSpin = false;
         
         // =========== عناصر HTML ===========
         const totalPointsEl = document.getElementById('totalPoints');
         const wheelBalanceEl = document.getElementById('wheelBalance');
+        const adsTodayEl = document.getElementById('adsToday');
         const spinBtn = document.getElementById('spinBtn');
+        const adSpinBtn = document.getElementById('adSpinBtn');
         const prizeMessage = document.getElementById('prizeMessage');
         const prizeValue = document.getElementById('prizeValue');
         const wheel = document.getElementById('wheel');
@@ -288,74 +351,96 @@
         function updateUI() {
             totalPointsEl.textContent = totalPoints;
             wheelBalanceEl.textContent = totalPoints;
+            adsTodayEl.textContent = adsToday;
             localStorage.setItem('totalPoints', totalPoints.toString());
+            localStorage.setItem('adsToday', adsToday.toString());
         }
         updateUI();
         
-        // =========== حساب الجائزة بناءً على الزاوية الفعلية ===========
+        // =========== حساب الجائزة بدقة ===========
         function getPrizeFromAngle(angle) {
-            // تطبيع الزاوية بين 0 و 360
             const normalizedAngle = ((angle % 360) + 360) % 360;
             
-            // تحديد القطاع بناءً على الزاوية
             if (normalizedAngle >= 0 && normalizedAngle < 51.43) return PRIZES[0];
             if (normalizedAngle >= 51.43 && normalizedAngle < 102.86) return PRIZES[1];
             if (normalizedAngle >= 102.86 && normalizedAngle < 154.29) return PRIZES[2];
             if (normalizedAngle >= 154.29 && normalizedAngle < 205.72) return PRIZES[3];
             if (normalizedAngle >= 205.72 && normalizedAngle < 257.15) return PRIZES[4];
             if (normalizedAngle >= 257.15 && normalizedAngle < 308.58) return PRIZES[5];
-            return PRIZES[6]; // 308.58 - 360
+            return PRIZES[6];
         }
         
         // =========== تدوير العجلة ===========
-        function spinWheel() {
+        function spinWheel(isFree) {
             if (isSpinning) return;
             
-            if (totalPoints < 20) {
+            if (!isFree && totalPoints < 20) {
                 alert('❌ رصيدك غير كافٍ! تحتاج 20 نقطة للعب');
                 return;
             }
             
-            // خصم النقاط
-            totalPoints -= 20;
+            if (!isFree) {
+                totalPoints -= 20;
+            }
             updateUI();
             
             isSpinning = true;
             spinBtn.disabled = true;
+            adSpinBtn.disabled = true;
             prizeMessage.classList.add('hidden');
             
-            // عدد اللفات (5-8 لفات)
-            const spins = 5 + Math.floor(Math.random() * 4);
-            // زاوية عشوائية إضافية (0-360)
+            // دوران احترافي (6-9 لفات)
+            const spins = 6 + Math.floor(Math.random() * 4);
             const randomAngle = Math.random() * 360;
-            // الزاوية النهائية = اللفات × 360 + عشوائي
             const targetAngle = spins * 360 + randomAngle;
             currentRotation += targetAngle;
             
-            // تطبيق الدوران مع تأثير التباطؤ (cubic-bezier)
             wheel.style.transition = 'transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)';
             wheel.style.transform = `rotate(${currentRotation}deg)`;
             
-            // بعد انتهاء الدوران (4 ثواني)
             setTimeout(() => {
-                // إزالة الانتقال (transition) لمنع أي تحرك إضافي
                 wheel.style.transition = '';
                 
-                // حساب الجائزة
                 const prize = getPrizeFromAngle(currentRotation);
-                
-                // إضافة النقاط
                 totalPoints += prize;
                 updateUI();
                 
-                // عرض النتيجة
                 prizeValue.textContent = prize;
                 prizeMessage.classList.remove('hidden');
                 
                 isSpinning = false;
                 spinBtn.disabled = false;
+                adSpinBtn.disabled = false;
                 
             }, 4000);
+        }
+        
+        // =========== تدوير مجاني بعد إعلان ===========
+        function spinWithAd() {
+            if (isSpinning) return;
+            
+            if (!videoShow) {
+                alert('⚠️ الإعلان غير متاح حالياً');
+                return;
+            }
+            
+            if (adsToday >= 400) {
+                alert('❌ لقد استنفدت حد الإعلانات اليومي');
+                return;
+            }
+            
+            pendingFreeSpin = true;
+            
+            videoShow()
+                .then(() => {
+                    adsToday++;
+                    updateUI();
+                    spinWheel(true);
+                })
+                .catch(() => {
+                    alert('❌ حدث خطأ في تشغيل الإعلان');
+                    pendingFreeSpin = false;
+                });
         }
     </script>
 </body>
