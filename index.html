@@ -31,11 +31,11 @@
             <h2>🎡 عجلة الحظ</h2>
             <div class="wheel-wrapper">
                 <canvas id="wheelCanvas" width="300" height="300"></canvas>
-                <button id="spinBtn" class="btn-spin" disabled>لف العجلة (5 نقاط)</button>
+                <button id="spinBtn" class="btn-spin">لف العجلة (5 نقاط)</button>
             </div>
             <div class="spin-info">
                 <span>اللفات المتاحة: <span id="availableSpins">0</span></span>
-                <button id="watchAdForSpins" class="btn-ad">شاهد إعلان للحصول على لفتين</button>
+                <button id="watchAdForSpins" class="btn-ad">📺 شاهد إعلان (نقطتين)</button>
             </div>
         </div>
 
@@ -93,6 +93,10 @@
                 <div class="modal-content">
                     <span class="close">&times;</span>
                     <h3>طلب سحب الأرباح</h3>
+                    <p class="withdrawal-info">
+                        الحد الأدنى: 200 نقطة (10 جنيه)<br>
+                        الحد الأقصى: 8,000 نقطة (400 جنيه)
+                    </p>
                     <div class="payment-methods">
                         <div class="payment-method" data-method="orange">
                             <img src="https://cdn-icons-png.flaticon.com/128/15466/15466173.png" alt="Orange Cash">
@@ -112,8 +116,8 @@
                         </div>
                     </div>
                     <form id="withdrawForm" style="display: none;">
-                        <input type="text" id="accountDetails" placeholder="بيانات الحساب" required>
-                        <input type="number" id="withdrawAmount" placeholder="المبلغ" min="100" required>
+                        <input type="text" id="accountDetails" placeholder="بيانات الحساب (رقم المحفظة أو الإيميل)" required>
+                        <input type="number" id="withdrawAmount" placeholder="المبلغ (200 - 8000 نقطة)" min="200" max="8000" required>
                         <button type="submit">تقديم الطلب</button>
                     </form>
                 </div>
