@@ -3,34 +3,40 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 
-const token = '8617943344:AAGrxfAedccd1nd1pRCpq1l5AI92psPahMA';
+// ✅ التوكن هيتم إضافته من متغيرات البيئة على Railway
+const token = process.env.TELEGRAM_BOT_TOKEN;
+if (!token) {
+    console.error("❌ خطأ: التوكن مش موجود - تأكد من إضافته في متغيرات Railway");
+    process.exit(1);
+}
+
 const bot = new TelegramBot(token, { polling: true });
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// تخزين بيانات المستخدمين
+// تخزين بيانات المستخدمين (مؤقت)
 const userData = new Map();
 
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-// تشغيل خادم ويب
+// تشغيل الخادم
 app.listen(PORT, () => {
-    console.log(`الخادم يعمل على المنفذ ${PORT}`);
+    console.log(`✅ الخادم شغال على بورت ${PORT}`);
 });
 
-// معالجة أمر /start
+// أمر /start
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
     const username = msg.from.username || msg.from.first_name;
     
-    // إنشاء بيانات للمستخدم الجديد
+    // بيانات افتراضية للمستخدم الجديد
     if (!userData.has(username)) {
         userData.set(username, {
             username: username,
             points: 0,
-            spins: 3, // بداية بثلاث لفات مجانية
+            spins: 3,
             lastCheckin: null,
             referrals: [],
             walletBalance: 0,
@@ -38,10 +44,11 @@ bot.onText(/\/start/, (msg) => {
         });
     }
     
-    // إرسال رابط التطبيق المصغر
-    const appUrl = `https://earn-mini-appuprailwayapp-production.up.railway.app/?user=${username}`;
+    // رابط التطبيق المصغر
+    const appBaseUrl = process.env.APP_URL || `https://${process.env.RAILWAY_STATIC_URL}`;
+    const appUrl = `${appBaseUrl}/?user=${username}`;
     
-    bot.sendMessage(chatId, `مرحباً ${username}! 👋\n\nمرحباً بك في تطبيق Earn Mini App - عجلة الحظ!\n\n🎡 اكسب النقاط ودعوة الأصدقاء واستمتع بعجلة الحظ\n\n💰 ابدأ الآن:`, {
+    bot.sendMessage(chatId, `مرحباً ${username}! 👋\n\n🎡 اهلاً بك في تطبيق عجلة الحظ\n💰 اكسب النقاط ودعوة الأصدقاء`, {
         reply_markup: {
             inline_keyboard: [
                 [{ text: '🎮 فتح التطبيق', web_app: { url: appUrl } }],
@@ -51,79 +58,53 @@ bot.onText(/\/start/, (msg) => {
     });
 });
 
-// معالجة الدعوات
-bot.on('message', (msg) => {
-    if (msg.text && msg.text.startsWith('/invite ')) {
-        const chatId = msg.chat.id;
-        const inviter = msg.from.username || msg.from.first_name;
-        const invited = msg.text.split(' ')[1];
-        
-        const inviterData = userData.get(inviter);
-        
-        if (inviterData && !inviterData.referrals.includes(invited)) {
-            inviterData.referrals.push(invited);
-            inviterData.points += 30;
-            inviterData.walletBalance += 30;
-            
-            bot.sendMessage(chatId, `✅ تمت إضافة الصديق ${invited} بنجاح! ربحت 30 نقطة`);
-        }
-    }
-});
-
-// API endpoints
+// API: استرجاع بيانات المستخدم
 app.get('/api/user/:username', (req, res) => {
     const username = req.params.username;
     const data = userData.get(username) || null;
     res.json(data);
 });
 
+// API: حفظ بيانات المستخدم
 app.post('/api/save-user', (req, res) => {
     const { username, data } = req.body;
     userData.set(username, data);
     res.json({ success: true });
 });
 
+// API: دعوة صديق
 app.post('/api/invite', (req, res) => {
     const { username, friendUsername } = req.body;
     
-    // التحقق من وجود الصديق في قاعدة البيانات
     if (!userData.has(friendUsername)) {
-        return res.json({ 
-            success: false, 
-            message: 'الصديق غير موجود في التطبيق بعد. الرجاء التأكد من أن الصديق بدأ استخدام البوت أولاً' 
-        });
+        return res.json({ success: false, message: 'الصديق مش موجود في التطبيق' });
     }
     
     const inviterData = userData.get(username);
     
     if (inviterData.referrals.includes(friendUsername)) {
-        return res.json({ 
-            success: false, 
-            message: 'لقد قمت بدعوة هذا الصديق من قبل' 
-        });
+        return res.json({ success: false, message: 'تمت دعوة الصديق من قبل' });
     }
     
-    // إضافة الدعوة
     inviterData.referrals.push(friendUsername);
-    
-    // منح النقاط عندما ينجز الصديق المهمة (سيتم تحديثها لاحقاً)
     res.json({ success: true });
 });
 
+// API: طلب سحب
 app.post('/api/withdraw', (req, res) => {
     const { username, withdrawal } = req.body;
     const user = userData.get(username);
     
     if (user) {
         user.pendingWithdrawals.push(withdrawal);
-        // إرسال إشعار للمشرف (يمكنك تغيير هذا إلى معرف المشرف الخاص بك)
-        bot.sendMessage('ADMIN_CHAT_ID', 
-            `💰 طلب سحب جديد:\nالمستخدم: ${username}\nالطريقة: ${withdrawal.method}\nالمبلغ: ${withdrawal.amount} نقطة\nالتفاصيل: ${withdrawal.accountDetails}`
-        );
+        
+        // إرسال إشعار للمشرف (غير مفعل حالياً)
+        // لو عاوز تشغله، حط معرف المشرف في متغير ADMIN_CHAT_ID
+        
         res.json({ success: true });
     } else {
         res.json({ success: false, message: 'المستخدم غير موجود' });
     }
 });
 
-console.log('البوت يعمل...');
+console.log('🤖 البوت شغال...');
