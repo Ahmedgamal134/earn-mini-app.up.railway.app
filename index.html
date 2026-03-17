@@ -1,242 +1,126 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="utf-8" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earn Mini App - عجلة الحظ</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            font-family:'Cairo',sans-serif;
-            background:linear-gradient(135deg,#667eea,#764ba2);
-            color:white;
-            min-height:100vh;
-            padding:15px;
-            text-align:center;
-            overflow-x:hidden;
-        }
-        .header {
-            background:rgba(255,255,255,0.15);
-            border-radius:18px;
-            padding:15px 20px;
-            margin-bottom:20px;
-        }
-        .points {
-            font-size:32px;
-            font-weight:700;
-            background:linear-gradient(45deg,#00ff88,#00cc6a);
-            -webkit-background-clip:text;
-            -webkit-text-fill-color:transparent;
-            margin-bottom:8px;
-        }
-        .stats {
-            display:grid;
-            grid-template-columns:1fr 1fr 1fr;
-            gap:10px;
-            margin-bottom:15px;
-        }
-        .stat {
-            background:rgba(255,255,255,0.1);
-            border-radius:12px;
-            padding:8px;
-            font-size:14px;
-        }
-
-        .section {
-            background:rgba(255,255,255,0.12);
-            border-radius:18px;
-            padding:18px;
-            margin-bottom:15px;
-        }
-        .btn-row {
-            display:grid;
-            grid-template-columns:1fr 1fr 1fr;
-            gap:10px;
-            margin-top:10px;
-        }
-        .btn {
-            background:rgba(255,255,255,0.15);
-            border:1px solid rgba(255,255,255,0.3);
-            border-radius:12px;
-            padding:12px;
-            font-size:14px;
-            color:white;
-            cursor:pointer;
-            transition:all 0.3s;
-        }
-        .btn:hover {
-            background:rgba(255,255,255,0.3);
-        }
-
-        .wallet-section {
-            display:none;
-            padding:15px;
-            margin:15px 0;
-            background:rgba(255,255,255,0.12);
-            border-radius:16px;
-        }
-        .wallet-input {
-            background:rgba(255,255,255,0.2);
-            border:1px solid rgba(255,255,255,0.4);
-            border-radius:12px;
-            padding:12px;
-            color:white;
-            font-size:14px;
-            width:100%;
-            margin-bottom:8px;
-        }
-        .btn-submit {
-            width:100%;
-            background:linear-gradient(45deg,#ff4081,#f50057);
-            border:none;
-            padding:14px;
-            border-radius:20px;
-            font-weight:600;
-            margin-top:10px;
-            cursor:pointer;
-        }
-        .btn-submit:hover {
-            transform:scale(1.02);
-        }
-
-        .wheel-container {
-            position:fixed;
-            top:0; left:0;
-            width:100%; height:100%;
-            background:rgba(0,0,0,0.95);
-            display:none;
-            justify-content:center;
-            align-items:center;
-            z-index:1000;
-        }
-        #wheelCanvas {
-            width:280px; height:280px;
-            border:10px solid #fff;
-            border-radius:50%;
-            box-shadow:0 0 40px rgba(0,255,136,0.6);
-        }
-        #wheelResult {
-            position:absolute;
-            bottom:10px;
-            left:50%;
-            transform:translateX(-50%);
-            font-size:24px;
-            color:#00ff88;
-            font-weight:700;
-        }
-    </style>
 </head>
 <body>
+    <div class="container">
+        <!-- رأس الصفحة -->
+        <div class="header">
+            <div class="user-info">
+                <span class="username" id="username">المستخدم</span>
+                <div class="points-balance">
+                    <span class="points-icon">💰</span>
+                    <span id="userPoints">0</span> نقطة
+                </div>
+            </div>
+            <div class="daily-checkin">
+                <button id="checkinBtn" class="btn-checkin">
+                    <span class="icon">📅</span>
+                    تسجيل الدخول اليومي (+10)
+                </button>
+            </div>
+        </div>
 
-    <!-- Header مع النقاط -->
-    <div class="header">
-        <h1 style="font-size:22px;margin-bottom:10px;">🚀 Earn Pro</h1>
-        <div class="points" id="points">0 نقطة</div>
-        <div class="stats">
-            <div class="stat">🎰 <span id="spinsLeft">0</span> لفة</div>
-            <div class="stat">📅 <span id="dailyStatus">متأخر</span></div>
-            <div class="stat">👥 <span id="invites">0</span> دعوة</div>
+        <!-- عجلة الحظ -->
+        <div class="wheel-container">
+            <h2>🎡 عجلة الحظ</h2>
+            <div class="wheel-wrapper">
+                <canvas id="wheelCanvas" width="300" height="300"></canvas>
+                <button id="spinBtn" class="btn-spin" disabled>لف العجلة (5 نقاط)</button>
+            </div>
+            <div class="spin-info">
+                <span>اللفات المتاحة: <span id="availableSpins">0</span></span>
+                <button id="watchAdForSpins" class="btn-ad">شاهد إعلان للحصول على لفتين</button>
+            </div>
+        </div>
+
+        <!-- الإعلانات الثلاثة -->
+        <div class="ads-section">
+            <h3>📺 شاهد إعلانات</h3>
+            <div class="ads-grid">
+                <div class="ad-item" data-spot-id="6113782">
+                    <button class="btn-ad" onclick="playAd('6113782')">
+                        شاهد إعلان 1
+                    </button>
+                    <span class="cooldown" id="cooldown1"></span>
+                </div>
+                <div class="ad-item" data-spot-id="6113667">
+                    <button class="btn-ad" onclick="playAd('6113667')">
+                        شاهد إعلان 2
+                    </button>
+                    <span class="cooldown" id="cooldown2"></span>
+                </div>
+                <div class="ad-item" data-spot-id="6113781">
+                    <button class="btn-ad" onclick="playAd('6113781')">
+                        شاهد إعلان 3
+                    </button>
+                    <span class="cooldown" id="cooldown3"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- دعوة الأصدقاء -->
+        <div class="referral-section">
+            <h3>👥 دعوة الأصدقاء</h3>
+            <div class="referral-box">
+                <p>ادع صديقاً حقيقياً واكسب 30 نقطة عند إنجاز المهمة</p>
+                <div class="referral-input">
+                    <input type="text" id="friendUsername" placeholder="معرف الصديق في التليجرام" dir="ltr">
+                    <button id="inviteFriendBtn" class="btn-primary">دعوة</button>
+                </div>
+                <div class="referral-stats">
+                    <span>الأصدقاء المدعوين: <span id="referralCount">0</span></span>
+                    <span>النقاط المكتسبة: <span id="referralPoints">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- المحفظة والسحب -->
+        <div class="wallet-section">
+            <h3>💰 المحفظة والسحب</h3>
+            <div class="wallet-balance">
+                <span>رصيد المحفظة: <span id="walletBalance">0</span> نقطة</span>
+                <button id="withdrawBtn" class="btn-withdraw">سحب الأرباح</button>
+            </div>
+            
+            <!-- نافذة السحب المنبثقة -->
+            <div id="withdrawModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3>طلب سحب الأرباح</h3>
+                    <div class="payment-methods">
+                        <div class="payment-method" data-method="orange">
+                            <img src="https://cdn-icons-png.flaticon.com/128/15466/15466173.png" alt="Orange Cash">
+                            <span>اورانج كاش</span>
+                        </div>
+                        <div class="payment-method" data-method="vodafone">
+                            <img src="https://cdn-icons-png.flaticon.com/128/15466/15466173.png" alt="Vodafone Cash">
+                            <span>فودافون كاش</span>
+                        </div>
+                        <div class="payment-method" data-method="etisalat">
+                            <img src="https://cdn-icons-png.flaticon.com/128/15466/15466173.png" alt="Etisalat Cash">
+                            <span>اتصالات كاش</span>
+                        </div>
+                        <div class="payment-method" data-method="paypal">
+                            <img src="https://cdn-icons-png.flaticon.com/128/15466/15466173.png" alt="PayPal">
+                            <span>PayPal</span>
+                        </div>
+                    </div>
+                    <form id="withdrawForm" style="display: none;">
+                        <input type="text" id="accountDetails" placeholder="بيانات الحساب" required>
+                        <input type="number" id="withdrawAmount" placeholder="المبلغ" min="100" required>
+                        <button type="submit">تقديم الطلب</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- ثُلُّات رئيسية: إعلان – عجلة – سحب -->
-    <div class="section">
-        <h3 style="font-size:16px;margin-bottom:10px;">إظهار ثُلَّاتك</h3>
-        <div class="btn-row">
-            <button class="btn" id="btnAd">📺 إعلان</button>
-            <button class="btn" id="btnSpin">🎰 عجلة</button>
-            <button class="btn" id="btnWithdraw">💳 سحب</button>
-        </div>
-    </div>
-
-    <!-- نموذج السحب -->
-    <div class="wallet-section" id="walletForm">
-        <select class="wallet-input" id="walletType">
-            <option value="orange">🟠 أورانج كاش</option>
-            <option value="vodafone">🔴 فودافون كاش</option>
-            <option value="etisalat">🟢 اتصالات كاش</option>
-            <option value="paypal">💳 باي بال</option>
-        </select>
-        <input type="text" class="wallet-input" id="walletNumber" placeholder="رقم المحفظة / الإيميل" />
-        <button class="btn-submit" onclick="requestWithdraw()">إرسال طلب السحب</button>
-    </div>
-
-    <!-- عجلة الحظ -->
-    <div class="wheel-container" id="wheelContainer">
-        <canvas id="wheelCanvas" width="280" height="280"></canvas>
-        <div id="wheelResult"></div>
-    </div>
-
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-
-        let points = 0, spinsLeft = 0, invites = 0;
-        let lastAdTime = 0, wheelSpinning = false;
-        let adShows = [];
-        const SPOT_IDS = [6113782, 6113667, 6113781];
-
-        // تحديث الواجهة
-        function updateDisplay() {
-            document.getElementById('points').innerText = points + ' نقطة';
-            document.getElementById('spinsLeft').innerText = spinsLeft;
-        }
-
-        // تهيئة إعلانات OnClicka
-        async function initOnClickaAds() {
-            for (let i = 0; i < SPOT_IDS.length; i++) {
-                try {
-                    const show = await window.initCdTma({ id: SPOT_IDS[i] });
-                    adShows[i] = show;
-                    tg.showAlert('الإعلانات جاهزة');
-                } catch (e) {
-                    console.log('Ad init failed:', e);
-                }
-            }
-        }
-
-        // إعلان (أول ثلث)
-        document.getElementById('btnAd').addEventListener('click', async () => {
-            const now = Date.now();
-            if (now - lastAdTime < 20000) {
-                const sec = Math.ceil((20000 - (now - lastAdTime)) / 1000);
-                tg.showAlert(`انتظر ${sec} ثانية`);
-                return;
-            }
-
-            if (!adShows[0]) {
-                tg.showAlert('الإعلان غير جاهز');
-                return;
-            }
-
-            try {
-                const result = await adShows[0]();
-                if (result) {
-                    lastAdTime = now;
-                    Telegram.WebApp.sendData('watch_ad'); // ⬅ هنا
-                    points += 5;
-                    spinsLeft += 2;
-                    updateDisplay();
-                    tg.showAlert('إعلان ناجح! +5 نقطة +2 لفة');
-                }
-            } catch (e) {
-                tg.showAlert('فشل إعلان');
-            }
-        });
-
-        // عجلة (الثاني)
-        document.getElementById('btnSpin').addEventListener('click', () => {
-            if (wheelSpinning) return;
-            if (spinsLeft <= 0 && points < 5) {
-                tg.showAlert('شاهد إعلان获得更多 لفات!');
-                return;
-            }
-
-            if (spinsLeft > 0) spinsLeft--;
-            else points -= 5;
-
-            wheelSpinning = true;
-            document.getElementById('wheelContainer').style.display = 'flex';
-
-            const canvas = document
+    <script src="script.js"></script>
+</body>
+</html>
