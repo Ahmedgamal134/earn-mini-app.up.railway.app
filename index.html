@@ -2,49 +2,308 @@
 <html>
 <head>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>body{font-family:Arial;text-align:center;padding:40px;background:linear-gradient(45deg,#667eea,#764ba2);color:white;}
-    button{background:#0088cc;color:white;border:none;padding:20px 40px;font-size:18px;border-radius:25px;margin:10px;cursor:pointer;}
-    button:hover{background:#0066cc;}
-    .points{font-size:28px;margin:30px;color:#00ff88;}</style>
+    <script src="https://js.onclckvd.com/in-stream-ad-admanager/tma.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Cairo',sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);color:white;min-height:100vh;padding:20px;text-align:center;overflow-x:hidden;}
+        .header{position:sticky;top:0;background:rgba(255,255,255,0.1);backdrop-filter:blur(20px);border-radius:20px;padding:20px;margin-bottom:20px;z-index:10;}
+        .points{font-size:36px;font-weight:700;background:linear-gradient(45deg,#00ff88,#00cc6a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px;}
+        .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;}
+        .stat{background:rgba(255,255,255,0.1);border-radius:15px;padding:10px;}
+        .ad-slots{display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;margin:20px 0;}
+        .ad-slot{background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);border-radius:20px;padding:20px;cursor:pointer;transition:all 0.3s;font-weight:600;font-size:16px;}
+        .ad-slot:hover{transform:translateY(-5px);border-color:#00ff88;box-shadow:0 10px 30px rgba(0,255,136,0.3);}
+        .ad-slot.locked{opacity:0.5;cursor:not-allowed;}
+        .ad-slot.cooldown{background:rgba(255,107,53,0.3);border-color:#ff6b35;}
+        .wheel-container{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:1000;display:none;justify-content:center;align-items:center;}
+        .wheel-wrapper{width:350px;height:350px;position:relative;}
+        #wheelCanvas{width:320px;height:320px;border-radius:50%;border:10px solid #fff;box-shadow:0 0 50px rgba(0,255,136,0.7);}
+        .btn-full{width:100%;background:linear-gradient(45deg,#ff4081,#f50057);border:none;padding:18px;font-size:18px;border-radius:25px;margin:10px 0;font-weight:700;cursor:pointer;transition:all 0.3s;}
+        .btn-full:hover{transform:scale(1.02);box-shadow:0 10px 30px rgba(255,64,129,0.4);}
+        .wallet-section{display:none;grid-template-columns:1fr;gap:15px;padding:20px;background:rgba(255,255,255,0.1);border-radius:20px;margin:20px 0;}
+        .wallet-input{background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);border-radius:15px;padding:18px;color:white;font-size:16px;width:100%;margin:5px 0;}
+        .cooldown-timer{font-size:24px;color:#ff6b35;font-weight:600;margin:10px 0;}
+    </style>
 </head>
 <body>
-    <h1>🚀 Earn Bot Pro</h1>
-    <div class="points">النقاط: <span id="points">0</span></div>
-    
-    <button onclick="watchAd()">📺 إعلان +5</button>
-    <button onclick="spinWheel()">🎰 عجلة الحظ</button>
-    <button onclick="dailyCheckin()">✅ يومي +15</button>
-    <button onclick="referFriends()">👥 أصدقاء +50</button>
-    
+    <!-- Header مع النقاط -->
+    <div class="header">
+        <h1 style="font-size:28px;margin-bottom:10px;">🚀 Earn Pro</h1>
+        <div class="points" id="points">0 نقطة</div>
+        <div class="stats">
+            <div class="stat">🎰 <span id="spinsLeft">0</span> لفة</div>
+            <div class="stat">📅 <span id="dailyStatus">لم تسجل</span></div>
+            <div class="stat">👥 <span id="invites">0</span> دعوة</div>
+        </div>
+    </div>
+
+    <!-- 3 خانات إعلانات OnClicka -->
+    <div class="ad-slots">
+        <div class="ad-slot" id="ad1" onclick="playAd(0)">📺 إعلان 1 (6113782)</div>
+        <div class="ad-slot" id="ad2" onclick="playAd(1)">📺 إعلان 2 (6113667)</div>
+        <div class="ad-slot" id="ad3" onclick="playAd(2)">📺 إعلان 3 (6113781)</div>
+    </div>
+
+    <div class="cooldown-timer" id="adCooldown" style="display:none;"></div>
+
+    <!-- الأزرار الرئيسية -->
+    <button class="btn-full" onclick="spinWheel()" id="spinBtn">🎰 عجلة الحظ (5 نقاط/لفة)</button>
+    <button class="btn-full" onclick="dailyCheckin()">✅ تسجيل يومي (10 نقاط)</button>
+    <button class="btn-full" onclick="shareInvite()">👥 دعوة صديق حقيقي (30 نقطة)</button>
+    <button class="btn-full" onclick="toggleWithdraw()" id="withdrawBtn">💳 سحب من المحفظة</button>
+
+    <!-- نموذج السحب -->
+    <div class="wallet-section" id="walletForm">
+        <select class="wallet-input" id="walletType">
+            <option value="orange">🟠 أورانج كاش</option>
+            <option value="vodafone">🔴 فودافون كاش</option>
+            <option value="etisalat">🟢 اتصالات كاش</option>
+            <option value="paypal">💳 باي بال</option>
+        </select>
+        <input type="text" class="wallet-input" id="walletNumber" placeholder="رقم المحفظة / الإيميل">
+        <button class="btn-full" onclick="requestWithdraw()">📤 إرسال طلب السحب</button>
+    </div>
+
+    <!-- عجلة الحظ 3D -->
+    <div class="wheel-container" id="wheelContainer">
+        <div class="wheel-wrapper">
+            <canvas id="wheelCanvas" width="350" height="350"></canvas>
+            <div style="position:absolute;bottom:-80px;left:50%;transform:translateX(-50%);font-size:28px;color:#00ff88;font-weight:700;" id="wheelResult"></div>
+        </div>
+    </div>
+
     <script>
-    const tg=window.Telegram.WebApp;tg.expand();
-    let points=0;
-    
-    function sendData(action){tg.sendData(action);}
-    
-    function watchAd(){
-        sendData('watch_ad');points+=5;updatePoints();
-        tg.showAlert('✅ إعلان تم! +5 نقطة');
-    }
-    
-    function spinWheel(){
-        const rewards=[5,10,15,25,50];
-        const r=rewards[Math.floor(Math.random()*rewards.length)];
-        sendData('wheel_'+r);points+=r;updatePoints();
-        tg.showAlert('🎉 فزت بـ '+r+' نقطة!');
-    }
-    
-    function dailyCheckin(){
-        sendData('checkin');points+=15;updatePoints();
-        tg.showAlert('✅ تسجيل يومي! +15 نقطة');
-    }
-    
-    function referFriends(){
-        sendData('refer');points+=50;updatePoints();
-        tg.showAlert('👥 تم المشاركة! +50 نقطة');
-    }
-    
-    function updatePoints(){document.getElementById('points').innerText=points;}
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        let points = 0, spinsLeft = 0, invites = 0;
+        let lastAdTime = 0, wheelSpinning = false, adShows = [];
+        const SPOT_IDS = [6113782, 6113667, 6113781];
+        
+        // تهيئة إعلانات OnClicka
+        async function initOnClickaAds() {
+            for(let i = 0; i < SPOT_IDS.length; i++) {
+                try {
+                    const show = await window.initCdTma({ id: SPOT_IDS[i] });
+                    adShows[i] = show;
+                    document.getElementById(`ad${i+1}`).dataset.ready = 'true';
+                } catch(e) {
+                    console.log(`Ad ${SPOT_IDS[i]} failed to init:`, e);
+                }
+            }
+        }
+
+        // تشغيل إعلان OnClicka
+        async function playAd(adIndex) {
+            const now = Date.now();
+            if(now - lastAdTime < 20000) {
+                showCooldown(now);
+                return;
+            }
+            
+            const adSlot = document.getElementById(`ad${adIndex+1}`);
+            if(!adShows[adIndex]) {
+                tg.showAlert('الإعلان غير جاهز');
+                return;
+            }
+            
+            adSlot.classList.add('active');
+            showTimer(20);
+            
+            try {
+                const result = await adShows[adIndex]();
+                if(result) {
+                    lastAdTime = now;
+                    tg.sendData('watch_ad');
+                    points += 5;
+                    spinsLeft += 2; // 2 لفة مجانية بعد الإعلان
+                    updateDisplay();
+                    tg.showAlert('✅ إعلان تم بنجاح!
+💎 +5 نقطة
+🎰 +2 لفة');
+                    // إعطاء لفات للمستخدمين الجدد
+                    if(points === 5) spinsLeft += 2;
+                }
+            } catch(e) {
+                tg.showAlert('فشل تشغيل الإعلان');
+            }
+            
+            adSlot.classList.remove('active');
+        }
+
+        function showCooldown(now) {
+            const remaining = Math.ceil((20000 - (Date.now() - now)) / 1000);
+            document.getElementById('adCooldown').innerText = `انتظر ${remaining} ثانية`;
+            document.getElementById('adCooldown').style.display = 'block';
+            setTimeout(() => document.getElementById('adCooldown').style.display = 'none', 1000);
+        }
+
+        function showTimer(seconds) {
+            let time = seconds;
+            const timerEl = document.getElementById('adCooldown');
+            timerEl.innerText = `${time} ثانية`;
+            timerEl.style.display = 'block';
+            const interval = setInterval(() => {
+                time--;
+                timerEl.innerText = `${time} ثانية`;
+                if(time <= 0) {
+                    clearInterval(interval);
+                    timerEl.style.display = 'none';
+                }
+            }, 1000);
+        }
+
+        // عجلة الحظ (0,5,10,...,50)
+        function spinWheel() {
+            if(wheelSpinning) return;
+            if(spinsLeft <= 0 && points < 5) {
+                tg.showAlert('شاهد إعلان للحصول على لفات مجانية!');
+                return;
+            }
+            
+            if(spinsLeft > 0) spinsLeft--;
+            else points -= 5;
+            
+            wheelSpinning = true;
+            document.getElementById('wheelContainer').style.display = 'flex';
+            document.getElementById('spinBtn').style.opacity = '0.5';
+            
+            const canvas = document.getElementById('wheelCanvas');
+            const ctx = canvas.getContext('2d');
+            const values = [0,5,10,15,20,25,30,35,40,45,50];
+            
+            function drawWheel(rotation = 0) {
+                ctx.clearRect(0, 0, 350, 350);
+                const centerX = 175, centerY = 175, radius = 160;
+                
+                for(let i = 0; i < values.length; i++) {
+                    const startAngle = (i * 2 * Math.PI / values.length) + rotation;
+                    const endAngle = ((i + 1) * 2 * Math.PI / values.length) + rotation;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                    ctx.fillStyle = `hsl(${(i * 34) % 360}, 70%, 60%)`;
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                    
+                    // النص
+                    ctx.save();
+                    const textAngle = startAngle + (Math.PI / values.length);
+                    ctx.translate(centerX + Math.cos(textAngle) * 70, centerY + Math.sin(textAngle) * 70);
+                    ctx.rotate(textAngle);
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 22px Cairo';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(values[i], 0, 8);
+                    ctx.restore();
+                }
+                
+                // المؤشر
+                ctx.save();
+                ctx.fillStyle = '#00ff88';
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY - radius - 20);
+                ctx.lineTo(centerX - 15, centerY - radius + 5);
+                ctx.lineTo(centerX + 15, centerY - radius + 5);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // الدوران
+            let startTime = null;
+            const duration = 4000;
+            const spins = 6 + Math.random() * 3;
+            
+            function animateWheel(timestamp) {
+                if(!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const rotation = spins * 2 * Math.PI * progress;
+                
+                drawWheel(rotation);
+                
+                if(progress < 1) {
+                    requestAnimationFrame(animateWheel);
+                } else {
+                    // حساب النتيجة النهائية
+                    const normalizedRotation = (rotation % (2 * Math.PI));
+                    const valueIndex = Math.floor((11 - (normalizedRotation * 11 / (2 * Math.PI))) % 11);
+                    const finalValue = values[valueIndex];
+                    
+                    document.getElementById('wheelResult').innerText = `🎉 ${finalValue} نقطة!`;
+                    tg.sendData(`wheel_${finalValue}`);
+                    points += finalValue;
+                    
+                    setTimeout(() => {
+                        wheelSpinning = false;
+                        document.getElementById('wheelContainer').style.display = 'none';
+                        document.getElementById('spinBtn').style.opacity = '1';
+                        updateDisplay();
+                    }, 2500);
+                }
+            }
+            
+            drawWheel();
+            requestAnimationFrame(animateWheel);
+        }
+
+        function dailyCheckin() {
+            tg.sendData('daily_checkin');
+            points += 10;
+            document.getElementById('dailyStatus').innerText = '✅ اليوم';
+            updateDisplay();
+            tg.showAlert('✅ تسجيل يومي ناجح! +10 نقاط');
+        }
+
+        function shareInvite() {
+            tg.sendData('invite');
+            tg.showAlert('📤 شارك الرابط مع صديق حقيقي!
+
+ستحصل على 30 نقطة عندما:
+✅ ينضم للتطبيق
+✅ يكمل مهمة واحدة');
+        }
+
+        function toggleWithdraw() {
+            const form = document.getElementById('walletForm');
+            form.style.display = form.style.display === 'grid' ? 'none' : 'grid';
+        }
+
+        function requestWithdraw() {
+            if(points < 100) {
+                tg.showAlert('💡 الحد الأدنى للسحب 100 نقطة');
+                return;
+            }
+            
+            const walletType = document.getElementById('walletType').value;
+            const walletNumber = document.getElementById('walletNumber').value;
+            
+            if(!walletNumber) {
+                tg.showAlert('📝 أدخل بيانات المحفظة');
+                return;
+            }
+            
+            tg.sendData(`withdraw_${walletType}_${walletNumber}_${points}`);
+            tg.showAlert('📤 تم إرسال طلب السحب!
+⏳ قيد الانتظار - مراجعة الأدمن');
+            toggleWithdraw();
+            document.getElementById('walletNumber').value = '';
+        }
+
+        function updateDisplay() {
+            document.getElementById('points').innerText = points + ' نقطة';
+            document.getElementById('spinsLeft').innerText = spinsLeft;
+        }
+
+        // بدء التطبيق
+        initOnClickaAds().then(() => {
+            tg.MainButton.setText('🎉 شغال!').show();
+        });
     </script>
 </body>
 </html>
