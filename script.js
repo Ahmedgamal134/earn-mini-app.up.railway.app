@@ -9,11 +9,24 @@ let userData = {
     pendingWithdrawals: []
 };
 
+// إعدادات السحب (معدلة حسب طلبك)
+const withdrawalSettings = {
+    minPoints: 200,      // 200 نقطة = 10 جنيه
+    maxPoints: 8000,     // 8,000 نقطة = 400 جنيه (الحد الأقصى)
+    exchangeRate: 20,    // 20 نقطة = 1 جنيه
+    methods: {
+        'orange': 'اورانج كاش',
+        'vodafone': 'فودافون كاش', 
+        'etisalat': 'اتصالات كاش',
+        'paypal': 'PayPal'
+    }
+};
+
 // تهيئة عجلة الحظ
 const canvas = document.getElementById('wheelCanvas');
 const ctx = canvas.getContext('2d');
-const segments = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
-const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD', '#D4A5A5', '#9B59B6', '#3498DB', '#E67E22', '#2ECC71', '#F1C40F'];
+const segments = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 100, 200, 500];
+const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD', '#D4A5A5', '#9B59B6', '#3498DB', '#E67E22', '#2ECC71', '#F1C40F', '#FF8C42', '#A569BD', '#5DADE2'];
 let spinning = false;
 let currentAngle = 0;
 
@@ -24,33 +37,29 @@ let adTimers = {
     '6113781': 0
 };
 
-// تهيئة البوت والتطبيق
+// مؤقت إعلان النقاط
+let pointsAdTimer = 0;
+
+// تهيئة التطبيق
 document.addEventListener('DOMContentLoaded', function() {
-    // الحصول على بيانات المستخدم من التليجرام
     if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
         tg.expand();
         userData.username = tg.initDataUnsafe.user?.username || 'مستخدم';
         document.getElementById('username').textContent = userData.username;
-        
-        // تحميل بيانات المستخدم من الخادم
         loadUserData();
     }
     
-    // رسم العجلة
     drawWheel();
-    
-    // تهيئة إعلانات onclicka
     initAds();
     
     // أحداث الأزرار
     document.getElementById('spinBtn').addEventListener('click', spinWheel);
-    document.getElementById('watchAdForSpins').addEventListener('click', watchAdForSpins);
+    document.getElementById('watchAdForSpins').addEventListener('click', watchAdForPoints);
     document.getElementById('checkinBtn').addEventListener('click', dailyCheckin);
     document.getElementById('inviteFriendBtn').addEventListener('click', inviteFriend);
     document.getElementById('withdrawBtn').addEventListener('click', openWithdrawModal);
     
-    // إغلاق النافذة المنبثقة
     document.querySelector('.close').addEventListener('click', function() {
         document.getElementById('withdrawModal').style.display = 'none';
     });
@@ -62,10 +71,15 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.add('selected');
             document.getElementById('withdrawForm').style.display = 'block';
             document.getElementById('withdrawForm').dataset.method = this.dataset.method;
+            
+            // تحديث الحدود في حقل المبلغ
+            const amountInput = document.getElementById('withdrawAmount');
+            amountInput.min = withdrawalSettings.minPoints;
+            amountInput.max = Math.min(withdrawalSettings.maxPoints, userData.walletBalance);
+            amountInput.placeholder = `من ${withdrawalSettings.minPoints} إلى ${amountInput.max} نقطة`;
         });
     });
     
-    // تقديم طلب السحب
     document.getElementById('withdrawForm').addEventListener('submit', function(e) {
         e.preventDefault();
         submitWithdrawal();
@@ -96,8 +110,13 @@ function drawWheel() {
         ctx.rotate(startAngle + anglePerSegment / 2);
         ctx.textAlign = 'center';
         ctx.fillStyle = 'white';
-        ctx.font = 'bold 16px Arial';
-        ctx.fillText(segments[i], 90, 10);
+        ctx.font = 'bold 14px Arial';
+        
+        let displayText = segments[i];
+        if (segments[i] >= 1000) {
+            displayText = (segments[i]/1000) + 'k';
+        }
+        ctx.fillText(displayText, 90, 10);
         ctx.restore();
     }
     
@@ -113,9 +132,14 @@ function drawWheel() {
 
 // دورة العجلة
 function spinWheel() {
-    if (spinning || userData.spins <= 0) return;
+    if (spinning) return;
     
-    userData.spins--;
+    if (userData.points < 5) {
+        alert('⚠️ مش معاك 5 نقاط! شاهد إعلان عشان تاخد نقطتين');
+        return;
+    }
+    
+    userData.points -= 5;
     updateUI();
     
     spinning = true;
@@ -132,7 +156,6 @@ function spinWheel() {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // Easing function for smooth stop
         const easeOut = 1 - Math.pow(1 - progress, 3);
         currentAngle = startAngle + (targetAngle - startAngle) * easeOut;
         
@@ -142,16 +165,15 @@ function spinWheel() {
             requestAnimationFrame(animate);
         } else {
             spinning = false;
-            document.getElementById('spinBtn').disabled = userData.spins <= 0;
+            document.getElementById('spinBtn').disabled = userData.points < 5;
             
-            // تحديد الجائزة
             const segmentIndex = Math.floor(((currentAngle % (Math.PI * 2)) / (Math.PI * 2)) * segments.length) % segments.length;
             const prize = segments[segmentIndex];
             
             userData.points += prize;
             userData.walletBalance += prize;
             
-            alert(`🎉 مبروك! ربحت ${prize} نقطة!`);
+            alert(`🎉 مبروك! ربحت ${prize.toLocaleString()} نقطة!`);
             updateUI();
             saveUserData();
         }
@@ -162,43 +184,72 @@ function spinWheel() {
 
 // تهيئة الإعلانات
 function initAds() {
-    // تهيئة محرك الإعلانات لكل سبوت
     const spotIds = ['6113782', '6113667', '6113781'];
     
     spotIds.forEach(spotId => {
         window.initCdTma?.({ id: spotId }).then(show => {
             window[`showAd_${spotId}`] = show;
+            console.log(`✅ إعلان ${spotId} جاهز`);
         }).catch(e => console.log(`خطأ في تهيئة الإعلان ${spotId}:`, e));
     });
 }
 
-// تشغيل الإعلان
+// تشغيل الإعلان العادي
 function playAd(spotId) {
     if (adTimers[spotId] > 0) {
-        alert(`الرجاء الانتظار ${adTimers[spotId]} ثانية قبل مشاهدة إعلان آخر`);
+        alert(`⏳ استنى ${adTimers[spotId]} ثانية قبل مشاهدة إعلان تاني`);
         return;
     }
     
     const showFunc = window[`showAd_${spotId}`];
     if (!showFunc) {
-        alert('جاري تهيئة الإعلان، الرجاء المحاولة مرة أخرى');
+        alert('جاري تحضير الإعلان');
         return;
     }
     
     showFunc().then(() => {
-        console.log(`تم تشغيل الإعلان ${spotId}`);
+        console.log(`✅ تم تشغيل الإعلان ${spotId}`);
         
-        // بدء المؤقت
         adTimers[spotId] = 20;
         
-        // تحديث حالة الزر
         const adButton = document.querySelector(`[data-spot-id="${spotId}"] .btn-ad`);
         if (adButton) {
             adButton.disabled = true;
         }
         
-        // منح المستخدم نقطة واحدة
-        userData.points += 1;
+        alert('✅ تم مشاهدة الإعلان');
+        
+    }).catch(e => {
+        console.log('خطأ في تشغيل الإعلان:', e);
+        alert('حدث خطأ في تشغيل الإعلان');
+    });
+}
+
+// مشاهدة إعلان عشان تاخد نقطتين
+function watchAdForPoints() {
+    if (pointsAdTimer > 0) {
+        alert(`⏳ استنى ${pointsAdTimer} ثانية قبل ما تشاهد إعلان تاني`);
+        return;
+    }
+    
+    const spotId = '6113782';
+    const showFunc = window[`showAd_${spotId}`];
+    
+    if (!showFunc) {
+        alert('الإعلان مش جاهز، حاول تاني');
+        return;
+    }
+    
+    showFunc().then(() => {
+        console.log('✅ تم تشغيل إعلان النقاط');
+        
+        pointsAdTimer = 15;
+        document.getElementById('watchAdForSpins').disabled = true;
+        
+        userData.points += 2;
+        userData.walletBalance += 2;
+        
+        alert('✅ تمت إضافة نقطتين!');
         updateUI();
         saveUserData();
         
@@ -208,34 +259,18 @@ function playAd(spotId) {
     });
 }
 
-// مشاهدة إعلان للحصول على لفتين
-function watchAdForSpins() {
-    // استخدام أول سبوت متاح
-    playAd('6113782').then(() => {
-        if (!adTimers['6113782']) { // إذا تم تشغيل الإعلان بنجاح
-            userData.spins += 2;
-            updateUI();
-            saveUserData();
-        }
-    });
-}
-
 // تحديث المؤقتات
 function updateTimers() {
-    let updated = false;
-    
     for (let spotId in adTimers) {
         if (adTimers[spotId] > 0) {
             adTimers[spotId]--;
-            updated = true;
             
-            // تحديث واجهة المؤقت
-            const cooldownSpan = document.getElementById(`cooldown${spotId.slice(-1)}`);
+            const index = Object.keys(adTimers).indexOf(spotId) + 1;
+            const cooldownSpan = document.getElementById(`cooldown${index}`);
             if (cooldownSpan) {
-                cooldownSpan.textContent = `⏳ ${adTimers[spotId]} ثانية`;
+                cooldownSpan.textContent = `⏳ ${adTimers[spotId]} ث`;
             }
             
-            // تفعيل الزر عند انتهاء المؤقت
             if (adTimers[spotId] === 0) {
                 const adButton = document.querySelector(`[data-spot-id="${spotId}"] .btn-ad`);
                 if (adButton) {
@@ -248,8 +283,20 @@ function updateTimers() {
         }
     }
     
-    if (updated) {
-        updateUI();
+    if (pointsAdTimer > 0) {
+        pointsAdTimer--;
+        
+        const pointsAdButton = document.getElementById('watchAdForSpins');
+        if (pointsAdButton) {
+            pointsAdButton.textContent = `⏳ استنى ${pointsAdTimer} ث`;
+        }
+        
+        if (pointsAdTimer === 0) {
+            if (pointsAdButton) {
+                pointsAdButton.textContent = '📺 شاهد إعلان (نقطتين)';
+                pointsAdButton.disabled = false;
+            }
+        }
     }
 }
 
@@ -258,7 +305,7 @@ function dailyCheckin() {
     const today = new Date().toDateString();
     
     if (userData.lastCheckin === today) {
-        alert('لقد قمت بتسجيل الدخول اليوم بالفعل!');
+        alert('لقد سجلت دخولك النهاردة!');
         return;
     }
     
@@ -266,7 +313,7 @@ function dailyCheckin() {
     userData.points += 10;
     userData.walletBalance += 10;
     
-    alert('✅ تم تسجيل دخولك اليومي! ربحت 10 نقاط');
+    alert('✅ تمت إضافة 10 نقاط');
     updateUI();
     saveUserData();
 }
@@ -276,28 +323,23 @@ function inviteFriend() {
     const friendUsername = document.getElementById('friendUsername').value.trim();
     
     if (!friendUsername) {
-        alert('الرجاء إدخال معرف الصديق');
+        alert('اكتب اسم الصديق');
         return;
     }
     
-    // التحقق من أن الصديق ليس نفس المستخدم
     if (friendUsername === userData.username) {
-        alert('لا يمكنك دعوة نفسك!');
+        alert('مش تنفع تدعو نفسك!');
         return;
     }
     
-    // التحقق من عدم تكرار الدعوة
     if (userData.referrals.includes(friendUsername)) {
-        alert('لقد قمت بدعوة هذا الصديق من قبل');
+        alert('دعيت الصديق ده قبل كده');
         return;
     }
     
-    // إرسال الدعوة إلى الخادم
     fetch('/api/invite', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
             username: userData.username,
             friendUsername: friendUsername
@@ -306,26 +348,32 @@ function inviteFriend() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('✅ تم إرسال الدعوة بنجاح! عند إنجاز الصديق للمهمة ستحصل على 30 نقطة');
+            alert('✅ تمت الدعوة! المهمة هتتكمل بعد ما الصديق ينجز');
             document.getElementById('friendUsername').value = '';
         } else {
-            alert(data.message || 'حدث خطأ في إرسال الدعوة');
+            alert(data.message || 'حصل خطأ');
         }
     })
     .catch(error => {
         console.error('خطأ:', error);
-        alert('حدث خطأ في الاتصال بالخادم');
+        alert('مشكلة في الاتصال');
     });
 }
 
 // فتح نافذة السحب
 function openWithdrawModal() {
-    if (userData.walletBalance < 100) {
-        alert('الحد الأدنى للسحب هو 100 نقطة');
+    if (userData.walletBalance < withdrawalSettings.minPoints) {
+        const needed = withdrawalSettings.minPoints - userData.walletBalance;
+        alert(`⚠️ مش معاك نقاط كافية!\nالحد الأدنى: ${withdrawalSettings.minPoints} نقطة (${(withdrawalSettings.minPoints / withdrawalSettings.exchangeRate).toFixed(2)} جنيه)\nناقصك: ${needed} نقطة`);
         return;
     }
     
     document.getElementById('withdrawModal').style.display = 'block';
+    
+    const amountInput = document.getElementById('withdrawAmount');
+    amountInput.min = withdrawalSettings.minPoints;
+    amountInput.max = Math.min(withdrawalSettings.maxPoints, userData.walletBalance);
+    amountInput.placeholder = `من ${withdrawalSettings.minPoints} إلى ${amountInput.max} نقطة`;
 }
 
 // تقديم طلب السحب
@@ -335,34 +383,40 @@ function submitWithdrawal() {
     const amount = parseInt(document.getElementById('withdrawAmount').value);
     
     if (!method) {
-        alert('الرجاء اختيار طريقة الدفع');
+        alert('اختار طريقة الدفع');
         return;
     }
     
     if (!accountDetails) {
-        alert('الرجاء إدخال بيانات الحساب');
+        alert('اكتب بيانات حسابك');
         return;
     }
     
-    if (amount < 100 || amount > userData.walletBalance) {
-        alert('المبلغ غير صحيح');
+    if (amount < withdrawalSettings.minPoints || amount > withdrawalSettings.maxPoints) {
+        alert(`المبلغ يجب أن يكون بين ${withdrawalSettings.minPoints} و ${withdrawalSettings.maxPoints} نقطة`);
         return;
     }
+    
+    if (amount > userData.walletBalance) {
+        alert('المبلغ أكبر من رصيدك');
+        return;
+    }
+    
+    const amountEGP = amount / withdrawalSettings.exchangeRate;
     
     const withdrawal = {
         method: method,
+        methodName: withdrawalSettings.methods[method],
         accountDetails: accountDetails,
-        amount: amount,
+        points: amount,
+        amountEGP: amountEGP,
         date: new Date().toISOString(),
         status: 'pending'
     };
     
-    // إرسال طلب السحب إلى الخادم
     fetch('/api/withdraw', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
             username: userData.username,
             withdrawal: withdrawal
@@ -371,7 +425,7 @@ function submitWithdrawal() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('✅ تم تقديم طلب السحب بنجاح! جاري الانتظار للموافقة');
+            alert(`✅ طلب السحب قيد المراجعة\nالمبلغ: ${amountEGP.toFixed(2)} جنيه (${amount} نقطة)`);
             userData.walletBalance -= amount;
             userData.pendingWithdrawals.push(withdrawal);
             
@@ -383,43 +437,40 @@ function submitWithdrawal() {
             updateUI();
             saveUserData();
         } else {
-            alert(data.message || 'حدث خطأ في تقديم الطلب');
+            alert(data.message || 'حصل خطأ');
         }
     })
     .catch(error => {
         console.error('خطأ:', error);
-        alert('حدث خطأ في الاتصال بالخادم');
+        alert('مشكلة في الاتصال');
     });
 }
 
 // تحديث واجهة المستخدم
 function updateUI() {
-    document.getElementById('userPoints').textContent = userData.points;
+    document.getElementById('userPoints').textContent = userData.points.toLocaleString();
     document.getElementById('availableSpins').textContent = userData.spins;
-    document.getElementById('walletBalance').textContent = userData.walletBalance;
+    document.getElementById('walletBalance').textContent = userData.walletBalance.toLocaleString();
     document.getElementById('referralCount').textContent = userData.referrals.length;
     
-    // حساب النقاط من الدعوات
     const referralPoints = userData.referrals.length * 30;
-    document.getElementById('referralPoints').textContent = referralPoints;
+    document.getElementById('referralPoints').textContent = referralPoints.toLocaleString();
     
-    // تحديث حالة زر اللف
-    document.getElementById('spinBtn').disabled = userData.spins <= 0 || spinning;
+    const spinBtn = document.getElementById('spinBtn');
+    spinBtn.textContent = userData.points >= 5 ? '🎡 لف العجلة (5 نقاط)' : '⚠️ مش معاك 5 نقاط';
+    spinBtn.disabled = userData.points < 5 || spinning;
 }
 
 // حفظ بيانات المستخدم
 function saveUserData() {
     fetch('/api/save-user', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
             username: userData.username,
             data: userData
         })
-    })
-    .catch(error => console.error('خطأ في حفظ البيانات:', error));
+    }).catch(error => console.error('خطأ في الحفظ:', error));
 }
 
 // تحميل بيانات المستخدم
@@ -432,5 +483,5 @@ function loadUserData() {
             updateUI();
         }
     })
-    .catch(error => console.error('خطأ في تحميل البيانات:', error));
+    .catch(error => console.error('خطأ في التحميل:', error));
 }
