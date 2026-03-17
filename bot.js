@@ -2,11 +2,12 @@ const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const path = require('path');
 
-// ✅ التوكن هيتم إضافته من متغيرات البيئة على Railway
+// ✅ التوكن من متغيرات البيئة
 const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) {
-    console.error("❌ خطأ: التوكن مش موجود - تأكد من إضافته في متغيرات Railway");
+    console.error("❌ خطأ: التوكن مش موجود");
     process.exit(1);
 }
 
@@ -14,16 +15,24 @@ const bot = new TelegramBot(token, { polling: true });
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// تخزين بيانات المستخدمين (مؤقت)
-const userData = new Map();
+// ✅ خدمة الملفات الثابتة من المجلد الحالي
+app.use(express.static(__dirname));
+
+// ✅ Route رئيسي عشان يخدم index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('public'));
+
+// تخزين بيانات المستخدمين
+const userData = new Map();
 
 // تشغيل الخادم
 app.listen(PORT, () => {
     console.log(`✅ الخادم شغال على بورت ${PORT}`);
+    console.log(`📁 الملفات بتتخدم من: ${__dirname}`);
 });
 
 // أمر /start
@@ -31,7 +40,6 @@ bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
     const username = msg.from.username || msg.from.first_name;
     
-    // بيانات افتراضية للمستخدم الجديد
     if (!userData.has(username)) {
         userData.set(username, {
             username: username,
@@ -44,7 +52,6 @@ bot.onText(/\/start/, (msg) => {
         });
     }
     
-    // رابط التطبيق المصغر
     const appBaseUrl = process.env.APP_URL || `https://${process.env.RAILWAY_STATIC_URL}`;
     const appUrl = `${appBaseUrl}/?user=${username}`;
     
@@ -77,13 +84,13 @@ app.post('/api/invite', (req, res) => {
     const { username, friendUsername } = req.body;
     
     if (!userData.has(friendUsername)) {
-        return res.json({ success: false, message: 'الصديق مش موجود في التطبيق' });
+        return res.json({ success: false, message: 'الصديق مش موجود' });
     }
     
     const inviterData = userData.get(username);
     
     if (inviterData.referrals.includes(friendUsername)) {
-        return res.json({ success: false, message: 'تمت دعوة الصديق من قبل' });
+        return res.json({ success: false, message: 'تمت الدعوة من قبل' });
     }
     
     inviterData.referrals.push(friendUsername);
@@ -97,10 +104,6 @@ app.post('/api/withdraw', (req, res) => {
     
     if (user) {
         user.pendingWithdrawals.push(withdrawal);
-        
-        // إرسال إشعار للمشرف (غير مفعل حالياً)
-        // لو عاوز تشغله، حط معرف المشرف في متغير ADMIN_CHAT_ID
-        
         res.json({ success: true });
     } else {
         res.json({ success: false, message: 'المستخدم غير موجود' });
