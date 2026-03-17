@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - Earn Mini App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f5f5;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .navbar h1 {
+            font-size: 24px;
+        }
+        
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+        
+        .navbar a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .value {
+            color: #333;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .users-section {
+            padding: 20px;
+        }
+        
+        .users-section h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .badge-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .badge-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .btn-edit, .btn-view {
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 0 5px;
+            transition: opacity 0.2s;
+        }
+        
+        .btn-edit {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-view {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-edit:hover, .btn-view:hover {
+            opacity: 0.9;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .close {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.2s;
+        }
+        
+        .close:hover {
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .withdrawal-item {
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+        
+        .withdrawal-item:hover {
+            transform: translateX(-5px);
+        }
+        
+        .withdrawal-pending {
+            border-right: 4px solid #ff9800;
+            background: #fff3e0;
+        }
+        
+        .withdrawal-approved {
+            border-right: 4px solid #4CAF50;
+            background: #e8f5e8;
+        }
+        
+        .withdrawal-rejected {
+            border-right: 4px solid #f44336;
+            background: #ffebee;
+        }
+        
+        .btn-approve, .btn-reject {
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 5px;
+            transition: opacity 0.2s;
+        }
+        
+        .btn-approve {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-reject {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-approve:hover, .btn-reject:hover {
+            opacity: 0.9;
+        }
+        
+        .user-details-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+        
+        .user-details-table td {
+            padding: 10px;
+            border: 1px solid #eee;
+        }
+        
+        .user-details-table td:first-child {
+            background: #f5f5f5;
+            font-weight: bold;
+            width: 40%;
+        }
+        
+        .search-box {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .search-box button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .search-box button:hover {
+            background: #5a67d8;
+        }
+        
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .pagination button:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                margin: 20px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>🔐 لوحة تحكم المشرف - Earn Mini App</h1>
+        <a href="/admin/logout">تسجيل خروج</a>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-card">
+            <h3>إجمالي المستخدمين</h3>
+            <div class="value"><%= stats.totalUsers.toLocaleString('ar-EG') %></div>
+        </div>
+        <div class="stat-card">
+            <h3>إجمالي النقاط</h3>
+            <div class="value"><%= stats.totalPoints.toLocaleString('ar-EG') %></div>
+        </div>
+        <div class="stat-card">
+            <h3>إجمالي المحفظة</h3>
+            <div class="value"><%= stats.totalWithdrawn.toLocaleString('ar-EG') %></div>
+        </div>
+        <div class="stat-card">
+            <h3>طلبات معلقة</h3>
+            <div class="value"><%= stats.pendingWithdrawals.toLocaleString('ar-EG') %></div>
+        </div>
+    </div>
+    
+    <div class="users-section">
+        <h2>📋 قائمة المستخدمين</h2>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="ابحث باسم المستخدم...">
+            <button onclick="searchUsers()">بحث</button>
+        </div>
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>المستخدم</th>
+                        <th>النقاط</th>
+                        <th>رصيد المحفظة</th>
+                        <th>الأصدقاء</th>
+                        <th>آخر نشاط</th>
+                        <th>التحكم</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <% users.forEach(user => { %>
+                    <tr class="user-row" data-username="<%= user.username %>">
+                        <td><%= user.username %></td>
+                        <td><%= (user.points || 0).toLocaleString('ar-EG') %></td>
+                        <td><%= (user.walletBalance || 0).toLocaleString('ar-EG') %></td>
+                        <td><%= (user.referrals || []).length %></td>
+                        <td><%= user.lastActive ? new Date(user.lastActive).toLocaleDateString('ar-EG') : 'غير معروف' %></td>
+                        <td>
+                            <button class="btn-edit" onclick="editUser('<%= user.username %>')">تعديل</button>
+                            <button class="btn-view" onclick="viewUser('<%= user.username %>')">عرض</button>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="pagination" id="pagination">
+            <button onclick="changePage(1)">الأولى</button>
+            <button onclick="changePage(currentPage - 1)" <%= currentPage === 1 ? 'disabled' : '' %>>السابق</button>
+            <span>صفحة <span id="currentPageDisplay">1</span> من <span id="totalPagesDisplay">1</span></span>
+            <button onclick="changePage(currentPage + 1)" <%= currentPage === totalPages ? 'disabled' : '' %>>التالي</button>
+            <button onclick="changePage(totalPages)">الأخيرة</button>
+        </div>
+    </div>
+    
+    <!-- Edit User Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editModal')">&times;</span>
+            <h2 id="editModalTitle">تعديل نقاط المستخدم</h2>
+            
+            <div class="form-group">
+                <label>المستخدم</label>
+                <input type="text" id="editUsername" readonly class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label>الإجراء</label>
+                <select id="editAction" class="form-control">
+                    <option value="set">تعيين النقاط</option>
+                    <option value="add">إضافة نقاط</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>عدد النقاط</label>
+                <input type="number" id="editPoints" min="0" value="0" class="form-control">
+            </div>
+            
+            <button onclick="saveUserPoints()" style="width:100%;padding:12px;background:#4CAF50;color:white;border:none;border-radius:5px;cursor:pointer;font-size:16px;">حفظ التعديلات</button>
+        </div>
+    </div>
+    
+    <!-- View User Modal -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('viewModal')">&times;</span>
+            <h2 id="viewModalTitle">بيانات المستخدم</h2>
+            
+            <div id="userDetails"></div>
+            
+            <h3 style="margin-top:20px;margin-bottom:15px;">طلبات السحب</h3>
+            <div id="withdrawalsList"></div>
+        </div>
+    </div>
+    
+    <script>
+        let currentUser = null;
+        let currentPage = 1;
+        let totalPages = 1;
+        const usersPerPage = 10;
+        let allUsers = <%= JSON.stringify(users) %>;
+        
+        function searchUsers() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filteredUsers = allUsers.filter(user => 
+                user.username.toLowerCase().includes(searchTerm)
+            );
+            renderUsers(filteredUsers);
+        }
+        
+        function renderUsers(users) {
+            const tbody = document.getElementById('usersTableBody');
+            totalPages = Math.ceil(users.length / usersPerPage);
+            document.getElementById('totalPagesDisplay').textContent = totalPages;
+            
+            const start = (currentPage - 1) * usersPerPage;
+            const end = start + usersPerPage;
+            const pageUsers = users.slice(start, end);
+            
+            tbody.innerHTML = '';
+            pageUsers.forEach(user => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-username', user.username);
+                row.innerHTML = `
+                    <td>${user.username}</td>
+                    <td>${(user.points || 0).toLocaleString('ar-EG')}</td>
+                    <td>${(user.walletBalance || 0).toLocaleString('ar-EG')}</td>
+                    <td>${(user.referrals || []).length}</td>
+                    <td>${user.lastActive ? new Date(user.lastActive).toLocaleDateString('ar-EG') : 'غير معروف'}</td>
+                    <td>
+                        <button class="btn-edit" onclick="editUser('${user.username}')">تعديل</button>
+                        <button class="btn-view" onclick="viewUser('${user.username}')">عرض</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            document.getElementById('currentPageDisplay').textContent = currentPage;
+        }
+        
+        function changePage(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            searchUsers();
+        }
+        
+        function editUser(username) {
+            currentUser = username;
+            document.getElementById('editUsername').value = username;
+            document.getElementById('editModal').style.display = 'block';
+        }
+        
+        async function viewUser(username) {
+            try {
+                const response = await fetch(`/admin/api/user/${username}`);
+                const user = await response.json();
+                
+                currentUser = username;
+                
+                let html = `
+                    <table class="user-details-table">
+                        <tr><td>اسم المستخدم</td><td>${user.username}</td></tr>
+                        <tr><td>النقاط</td><td>${(user.points || 0).toLocaleString('ar-EG')}</td></tr>
+                        <tr><td>رصيد المحفظة</td><td>${(user.walletBalance || 0).toLocaleString('ar-EG')}</td></tr>
+                        <tr><td>الأصدقاء المدعوين</td><td>${(user.referrals || []).length}</td></tr>
+                        <tr><td>تاريخ التسجيل</td><td>${user.createdAt ? new Date(user.createdAt).toLocaleDateString('ar-EG') : 'غير معروف'}</td></tr>
+                        <tr><td>آخر نشاط</td><td>${user.lastActive ? new Date(user.lastActive).toLocaleDateString('ar-EG') : 'غير معروف'}</td></tr>
+                    </table>
+                `;
+                
+                document.getElementById('userDetails').innerHTML = html;
+                
+                let withdrawalsHtml = '';
+                if (user.pendingWithdrawals && user.pendingWithdrawals.length > 0) {
+                    user.pendingWithdrawals.forEach((w, index) => {
+                        const statusClass = w.status === 'pending' ? 'pending' : w.status === 'approved' ? 'approved' : 'rejected';
+                        const statusText = w.status === 'pending' ? 'معلق' : w.status === 'approved' ? 'تمت الموافقة' : 'مرفوض';
+                        
+                        withdrawalsHtml += `
+                            <div class="withdrawal-item withdrawal-${statusClass}">
+                                <strong>${w.methodName}</strong><br>
+                                المبلغ: ${w.amountEGP} جنيه (${w.points} نقطة)<br>
+                                التاريخ: ${new Date(w.date).toLocaleDateString('ar-EG')}<br>
+                                الحالة: <span class="badge badge-${statusClass}">${statusText}</span><br>
+                                التفاصيل: ${w.accountDetails}<br>
+                                ${w.status === 'pending' ? 
+                                    `<div style="margin-top:10px;">
+                                        <button class="btn-approve" onclick="processWithdrawal('${w._id}', 'approve')">موافقة</button>
+                                        <button class="btn-reject" onclick="processWithdrawal('${w._id}', 'reject')">رفض</button>
+                                    </div>` 
+                                    : ''}
+                            </div>
+                        `;
+                    });
+                } else {
+                    withdrawalsHtml = '<p style="text-align:center;color:#666;padding:20px;">لا توجد طلبات سحب</p>';
+                }
+                
+                document.getElementById('withdrawalsList').innerHTML = withdrawalsHtml;
+                document.getElementById('viewModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error viewing user:', error);
+                alert('حدث خطأ في تحميل بيانات المستخدم');
+            }
+        }
+        
+        async function processWithdrawal(id, action) {
+            if (!confirm(`تأكيد ${action === 'approve' ? 'الموافقة' : 'الرفض'} على طلب السحب؟`)) return;
+            
+            try {
+                const response = await fetch(`/admin/api/withdrawal/${id}/${action}`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    alert('تمت العملية بنجاح');
+                    closeModal('viewModal');
+                    location.reload();
+                } else {
+                    alert('حدث خطأ: ' + (result.error || 'غير معروف'));
+                }
+            } catch (error) {
+                console.error('Error processing withdrawal:', error);
+                alert('حدث خطأ في الاتصال');
+            }
+        }
+        
+        async function saveUserPoints() {
+            const points = parseInt(document.getElementById('editPoints').value);
+            const action = document.getElementById('editAction').value;
+            
+            if (isNaN(points) || points < 0) {
+                alert('الرجاء إدخال عدد نقاط صحيح');
+                return;
+            }
+            
+            if (!confirm(`تأكيد ${action === 'set' ? 'تعيين' : 'إضافة'} ${points.toLocaleString('ar-EG')} نقطة للمستخدم ${currentUser}؟`)) return;
+            
+            try {
+                const response = await fetch('/admin/api/user/update-points', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        username: currentUser,
+                        points: points,
+                        action: action
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    alert('تم تعديل النقاط بنجاح');
+                    closeModal('editModal');
+                    location.reload();
+                } else {
+                    alert('حدث خطأ: ' + (result.error || 'غير معروف'));
+                }
+            } catch (error) {
+                console.error('Error saving points:', error);
+                alert('حدث خطأ في الاتصال');
+            }
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+        
+        // Initial render
+        renderUsers(allUsers);
+    </script>
+</body>
+</html>
