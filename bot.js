@@ -16,11 +16,20 @@ if (!token) {
     process.exit(1);
 }
 
-const bot = new TelegramBot(token, { polling: true });
+// ✅ استخدام Webhook بدلاً من Polling
+const bot = new TelegramBot(token);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// MongoDB connection for Railway internal DB
+// ✅ تعيين Webhook
+const appBaseUrl = process.env.APP_URL || `https://${process.env.RAILWAY_STATIC_URL}`;
+const webhookUrl = `${appBaseUrl}/bot${token}`;
+
+bot.setWebHook(webhookUrl)
+    .then(() => console.log(`✅ Webhook set to ${webhookUrl}`))
+    .catch(err => console.error('❌ Webhook error:', err));
+
+// MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongodb:27017/earn_bot';
 console.log('🔌 Connecting to MongoDB...');
 mongoose.connect(MONGODB_URI)
@@ -68,9 +77,15 @@ app.use(session({
     saveUninitialized: false
 }));
 
-// View engine setup for admin panel
+// View engine setup
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+// ✅ Webhook endpoint لتلقي التحديثات من تليجرام
+app.post(`/bot${token}`, (req, res) => {
+    bot.processUpdate(req.body);
+    res.sendStatus(200);
+});
 
 // Routes
 app.get('/', (req, res) => {
@@ -180,8 +195,6 @@ app.post('/api/withdraw', async (req, res) => {
 });
 
 // Admin Panel Routes
-
-// Create default admin (run once)
 async function createDefaultAdmin() {
     try {
         const adminExists = await Admin.findOne({ username: 'admin' });
@@ -347,7 +360,6 @@ bot.onText(/\/start/, async (msg) => {
             console.log(`✅ New user from bot: ${username}`);
         }
         
-        const appBaseUrl = process.env.APP_URL || `https://${process.env.RAILWAY_STATIC_URL}`;
         const appUrl = `${appBaseUrl}/?user=${username}`;
         
         bot.sendMessage(chatId, `مرحباً ${username}! 👋\n\n🎡 اهلاً بك في تطبيق عجلة الحظ\n💰 اكسب النقاط ودعوة الأصدقاء`, {
@@ -365,12 +377,11 @@ bot.onText(/\/start/, async (msg) => {
 
 bot.onText(/\/admin/, (msg) => {
     const chatId = msg.chat.id;
-    const appBaseUrl = process.env.APP_URL || `https://${process.env.RAILWAY_STATIC_URL}`;
     bot.sendMessage(chatId, `🔐 لوحة تحكم المشرف:\n${appBaseUrl}/admin/login`);
 });
 
 app.listen(PORT, () => {
     console.log(`✅ الخادم شغال على بورت ${PORT}`);
     console.log(`📁 الملفات بتتخدم من: ${__dirname}`);
-    console.log(`🔗 الرابط: https://${process.env.RAILWAY_STATIC_URL || 'localhost'}`);
+    console.log(`🔗 Webhook URL: ${webhookUrl}`);
 });
