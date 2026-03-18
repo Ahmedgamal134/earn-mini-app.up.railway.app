@@ -35,16 +35,37 @@ bot.setWebHook(webhookUrl)
     .then(() => console.log('✅ Webhook تم تعيينه بنجاح'))
     .catch(err => console.error('❌ فشل تعيين Webhook:', err.message));
 
-// MongoDB connection
+// ✅ MongoDB Connection مع تأخير 4 ثواني (الحل العملي)
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) {
     console.error("❌ خطأ فادح: MONGODB_URI غير موجود. تأكد من إضافته في متغيرات البيئة.");
     process.exit(1);
 }
-console.log('🔌 جاري الاتصال بـ MongoDB...');
-mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('✅ تم الاتصال بـ MongoDB بنجاح'))
-    .catch(err => console.error('❌ فشل الاتصال بـ MongoDB:', err.message));
+
+// 🔥 تأخير الاتصال 4 ثواني عشان الشبكة الداخلية تبدأ
+const connectWithDelay = async () => {
+    console.log('⏳ إنتظار 4 ثواني قبل محاولة الاتصال بقاعدة البيانات...');
+    await new Promise(resolve => setTimeout(resolve, 4000));
+
+    console.log('🔌 جاري الاتصال بـ MongoDB...');
+    try {
+        await mongoose.connect(MONGODB_URI, { 
+            useNewUrlParser: true, 
+            useUnifiedTopology: true,
+            serverSelectionTimeoutMS: 5000 // timeout بعد 5 ثواني
+        });
+        console.log('✅ تم الاتصال بـ MongoDB بنجاح');
+        
+        // بعد الاتصال، نبدأ في إنشاء المشرف الافتراضي
+        createDefaultAdmin();
+    } catch (err) {
+        console.error('❌ فشل الاتصال بـ MongoDB:', err.message);
+        // مش هنخرج من البرنامج عشان الخدمة متوقفش
+    }
+};
+
+// تشغيل دالة الاتصال
+connectWithDelay();
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -77,8 +98,8 @@ const User = mongoose.model('User', userSchema);
 const Admin = mongoose.model('Admin', adminSchema);
 
 // Middleware
-app.use(express.static(path.join(__dirname, 'public'))); // تأكد من وجود مجلد public أو استخدم __dirname لخدمة الملفات من الجذر
-app.use(express.static(__dirname)); // لخدمة index.html من الجذر أيضاً
+app.use(express.static(path.join(__dirname, 'public'))); 
+app.use(express.static(__dirname)); 
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -86,7 +107,7 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'your-strong-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // في الإنتاج، قد تحتاج لضبطه على true إذا كنت تستخدم HTTPS
+    cookie: { secure: false }
 }));
 
 // View engine setup
@@ -206,6 +227,12 @@ app.post('/api/withdraw', async (req, res) => {
 // Admin Panel Routes
 async function createDefaultAdmin() {
     try {
+        // نتأكد إن الاتصال بقاعدة البيانات تم قبل محاولة البحث
+        if (mongoose.connection.readyState !== 1) {
+            console.log('⏳ إنتظار الاتصال بقاعدة البيانات قبل إنشاء المشرف...');
+            return;
+        }
+        
         const adminExists = await Admin.findOne({ username: 'admin' });
         if (!adminExists) {
             const hashedPassword = await bcrypt.hash('admin123', 10);
@@ -220,7 +247,6 @@ async function createDefaultAdmin() {
         console.error('خطأ في إنشاء المشرف الافتراضي:', error);
     }
 }
-createDefaultAdmin();
 
 // Admin login page
 app.get('/admin/login', (req, res) => {
