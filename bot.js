@@ -19,9 +19,6 @@ if (!token) {
     process.exit(1);
 }
 
-// ✅ تشغيل البوت بطريقة Polling العادية (مفيش ويب هوك)
-const bot = new TelegramBot(token, { polling: true });
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -35,7 +32,17 @@ if (!appBaseUrl) {
 }
 
 // ----------------------------------------
-// ✅ 3. الاتصال بـ PostgreSQL
+// ✅ 3. إعداد Webhook (بديل Polling)
+// ----------------------------------------
+const bot = new TelegramBot(token);
+const webhookUrl = `${appBaseUrl}/bot${token}`;
+
+bot.setWebHook(webhookUrl)
+    .then(() => console.log('✅ Webhook تم تعيينه بنجاح'))
+    .catch(err => console.error('❌ فشل تعيين Webhook:', err.message));
+
+// ----------------------------------------
+// ✅ 4. الاتصال بـ PostgreSQL
 // ----------------------------------------
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -51,7 +58,7 @@ const pool = new Pool({
 });
 
 // ----------------------------------------
-// ✅ 4. إنشاء الجداول (مرة واحدة)
+// ✅ 5. إنشاء الجداول (مرة واحدة)
 // ----------------------------------------
 const initDb = async () => {
     try {
@@ -114,7 +121,7 @@ const initDb = async () => {
 initDb();
 
 // ----------------------------------------
-// ✅ 5. إعدادات Express
+// ✅ 6. إعدادات Express
 // ----------------------------------------
 app.use(express.static(__dirname));
 app.use(cors());
@@ -131,14 +138,22 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // ----------------------------------------
-// ✅ 6. الصفحة الرئيسية
+// ✅ 7. نقطة نهاية Webhook (يستقبل تحديثات تليجرام)
+// ----------------------------------------
+app.post(`/bot${token}`, (req, res) => {
+    bot.processUpdate(req.body);
+    res.sendStatus(200);
+});
+
+// ----------------------------------------
+// ✅ 8. الصفحة الرئيسية
 // ----------------------------------------
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ----------------------------------------
-// ✅ 7. APIs الخاصة بالتطبيق
+// ✅ 9. APIs الخاصة بالتطبيق
 // ----------------------------------------
 
 // API: Get user data
@@ -287,7 +302,7 @@ app.post('/api/withdraw', async (req, res) => {
 });
 
 // ----------------------------------------
-// ✅ 8. لوحة تحكم المشرف
+// ✅ 10. لوحة تحكم المشرف
 // ----------------------------------------
 app.get('/admin/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin-login.html'));
@@ -433,7 +448,7 @@ app.get('/admin/logout', (req, res) => {
 });
 
 // ----------------------------------------
-// ✅ 9. أوامر البوت
+// ✅ 11. أوامر البوت
 // ----------------------------------------
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
@@ -483,7 +498,7 @@ bot.on('message', (msg) => {
 });
 
 // ----------------------------------------
-// ✅ 10. تشغيل الخادم
+// ✅ 12. تشغيل الخادم
 // ----------------------------------------
 app.listen(PORT, () => {
     console.log(`✅ الخادم يعمل على المنفذ ${PORT}`);
