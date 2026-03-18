@@ -10,29 +10,33 @@ const { Pool } = require('pg');
 // Load environment variables
 require('dotenv').config();
 
+// ----------------------------------------
+// ✅ 1. توكن البوت
+// ----------------------------------------
 const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) {
     console.error("❌ خطأ فادح: توكن البوت غير موجود. تأكد من إضافته في متغيرات البيئة.");
     process.exit(1);
 }
 
-const bot = new TelegramBot(token);
+// ✅ تشغيل البوت بطريقة Polling العادية (مفيش ويب هوك)
+const bot = new TelegramBot(token, { polling: true });
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ----------------------------------------
+// ✅ 2. رابط التطبيق الأساسي
+// ----------------------------------------
 const appBaseUrl = process.env.APP_URL;
 if (!appBaseUrl) {
     console.error("❌ خطأ فادح: APP_URL غير موجود. تأكد من إضافته في متغيرات البيئة.");
     process.exit(1);
 }
-const webhookUrl = `${appBaseUrl}/bot${token}`;
-console.log(`🔗 محاولة تعيين Webhook إلى: ${webhookUrl}`);
 
-bot.setWebHook(webhookUrl)
-    .then(() => console.log('✅ Webhook تم تعيينه بنجاح'))
-    .catch(err => console.error('❌ فشل تعيين Webhook:', err.message));
-
-// ✅ PostgreSQL Connection
+// ----------------------------------------
+// ✅ 3. الاتصال بـ PostgreSQL
+// ----------------------------------------
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
     console.error("❌ خطأ فادح: DATABASE_URL غير موجود. تأكد من إضافته في متغيرات البيئة.");
@@ -46,7 +50,9 @@ const pool = new Pool({
     }
 });
 
-// إنشاء الجداول إذا لم تكن موجودة
+// ----------------------------------------
+// ✅ 4. إنشاء الجداول (مرة واحدة)
+// ----------------------------------------
 const initDb = async () => {
     try {
         // جدول المستخدمين
@@ -107,7 +113,9 @@ const initDb = async () => {
 
 initDb();
 
-// Middleware
+// ----------------------------------------
+// ✅ 5. إعدادات Express
+// ----------------------------------------
 app.use(express.static(__dirname));
 app.use(cors());
 app.use(bodyParser.json());
@@ -122,14 +130,16 @@ app.use(session({
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-app.post(`/bot${token}`, (req, res) => {
-    bot.processUpdate(req.body);
-    res.sendStatus(200);
-});
-
+// ----------------------------------------
+// ✅ 6. الصفحة الرئيسية
+// ----------------------------------------
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+// ----------------------------------------
+// ✅ 7. APIs الخاصة بالتطبيق
+// ----------------------------------------
 
 // API: Get user data
 app.get('/api/user/:username', async (req, res) => {
@@ -151,7 +161,6 @@ app.get('/api/user/:username', async (req, res) => {
         );
         
         const user = result.rows[0];
-        // تحويل الـ referrals من array نصي إلى array
         user.referrals = user.referrals || [];
         
         res.json({
@@ -161,7 +170,7 @@ app.get('/api/user/:username', async (req, res) => {
             spins: user.spins,
             lastCheckin: user.last_checkin,
             referrals: user.referrals,
-            pendingWithdrawals: [] // هنحسنها بعدين
+            pendingWithdrawals: []
         });
     } catch (error) {
         console.error('خطأ في جلب المستخدم:', error);
@@ -243,7 +252,6 @@ app.post('/api/withdraw', async (req, res) => {
             return res.json({ success: false, message: 'المستخدم غير موجود' });
         }
         
-        // إضافة طلب السحب
         await pool.query(
             `INSERT INTO withdrawals 
                 (username, method, method_name, account_details, points, amount_egp, status)
@@ -259,7 +267,6 @@ app.post('/api/withdraw', async (req, res) => {
             ]
         );
         
-        // تحديث رصيد المحفظة
         await pool.query(
             'UPDATE users SET wallet_balance = wallet_balance - $1 WHERE username = $2',
             [withdrawal.points, username]
@@ -279,7 +286,9 @@ app.post('/api/withdraw', async (req, res) => {
     }
 });
 
-// Admin login page
+// ----------------------------------------
+// ✅ 8. لوحة تحكم المشرف
+// ----------------------------------------
 app.get('/admin/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin-login.html'));
 });
@@ -423,6 +432,9 @@ app.get('/admin/logout', (req, res) => {
     res.redirect('/admin/login');
 });
 
+// ----------------------------------------
+// ✅ 9. أوامر البوت
+// ----------------------------------------
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     const username = msg.from.username || msg.from.first_name;
@@ -465,6 +477,14 @@ bot.onText(/\/admin/, (msg) => {
     bot.sendMessage(chatId, `🔐 لوحة تحكم المشرف:\n${appBaseUrl}/admin/login`);
 });
 
+// استقبال أي رسالة نصية أخرى (للتأكد)
+bot.on('message', (msg) => {
+    console.log(`📨 رسالة واردة من ${msg.from.username || msg.from.first_name}: ${msg.text}`);
+});
+
+// ----------------------------------------
+// ✅ 10. تشغيل الخادم
+// ----------------------------------------
 app.listen(PORT, () => {
     console.log(`✅ الخادم يعمل على المنفذ ${PORT}`);
     console.log(`🔗 رابط التطبيق: ${appBaseUrl}`);
