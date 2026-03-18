@@ -12,7 +12,7 @@ require('dotenv').config();
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) {
-    console.error("❌ خطأ: التوكن مش موجود");
+    console.error("❌ خطأ فادح: توكن البوت غير موجود. تأكد من إضافته في متغيرات البيئة.");
     process.exit(1);
 }
 
@@ -21,29 +21,39 @@ const bot = new TelegramBot(token);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ تعيين Webhook
-const appBaseUrl = process.env.APP_URL || `https://${process.env.RAILWAY_STATIC_URL}`;
+// ✅ الحصول على رابط التطبيق الأساسي
+const appBaseUrl = process.env.APP_URL;
+if (!appBaseUrl) {
+    console.error("❌ خطأ فادح: APP_URL غير موجود. تأكد من إضافته في متغيرات البيئة.");
+    process.exit(1);
+}
 const webhookUrl = `${appBaseUrl}/bot${token}`;
+console.log(`🔗 محاولة تعيين Webhook إلى: ${webhookUrl}`);
 
+// تعيين Webhook
 bot.setWebHook(webhookUrl)
-    .then(() => console.log(`✅ Webhook set to ${webhookUrl}`))
-    .catch(err => console.error('❌ Webhook error:', err));
+    .then(() => console.log('✅ Webhook تم تعيينه بنجاح'))
+    .catch(err => console.error('❌ فشل تعيين Webhook:', err.message));
 
 // MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongodb:27017/earn_bot';
-console.log('🔌 Connecting to MongoDB...');
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('✅ Connected to MongoDB successfully'))
-    .catch(err => console.error('❌ MongoDB connection error:', err));
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+    console.error("❌ خطأ فادح: MONGODB_URI غير موجود. تأكد من إضافته في متغيرات البيئة.");
+    process.exit(1);
+}
+console.log('🔌 جاري الاتصال بـ MongoDB...');
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('✅ تم الاتصال بـ MongoDB بنجاح'))
+    .catch(err => console.error('❌ فشل الاتصال بـ MongoDB:', err.message));
 
 // User Schema
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     points: { type: Number, default: 0 },
+    walletBalance: { type: Number, default: 0 },
     spins: { type: Number, default: 3 },
     lastCheckin: { type: Date, default: null },
     referrals: [{ type: String }],
-    walletBalance: { type: Number, default: 0 },
     pendingWithdrawals: [{
         method: String,
         methodName: String,
@@ -67,21 +77,23 @@ const User = mongoose.model('User', userSchema);
 const Admin = mongoose.model('Admin', adminSchema);
 
 // Middleware
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'public'))); // تأكد من وجود مجلد public أو استخدم __dirname لخدمة الملفات من الجذر
+app.use(express.static(__dirname)); // لخدمة index.html من الجذر أيضاً
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    secret: process.env.SESSION_SECRET || 'your-strong-secret-key',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: { secure: false } // في الإنتاج، قد تحتاج لضبطه على true إذا كنت تستخدم HTTPS
 }));
 
 // View engine setup
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// ✅ Webhook endpoint لتلقي التحديثات من تليجرام
+// ✅ Webhook endpoint
 app.post(`/bot${token}`, (req, res) => {
     bot.processUpdate(req.body);
     res.sendStatus(200);
@@ -101,7 +113,7 @@ app.get('/api/user/:username', async (req, res) => {
         if (!user) {
             user = new User({ username });
             await user.save();
-            console.log(`✅ New user created: ${username}`);
+            console.log(`✅ مستخدم جديد تم إنشاؤه: ${username}`);
         }
         
         user.lastActive = new Date();
@@ -109,8 +121,8 @@ app.get('/api/user/:username', async (req, res) => {
         
         res.json(user);
     } catch (error) {
-        console.error('Error getting user:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('خطأ في جلب المستخدم:', error);
+        res.status(500).json({ error: 'خطأ في الخادم' });
     }
 });
 
@@ -118,10 +130,8 @@ app.get('/api/user/:username', async (req, res) => {
 app.post('/api/save-user', async (req, res) => {
     try {
         const { username, data } = req.body;
-        
         delete data._id;
         delete data.__v;
-        delete data.createdAt;
         
         const user = await User.findOneAndUpdate(
             { username },
@@ -131,8 +141,8 @@ app.post('/api/save-user', async (req, res) => {
         
         res.json({ success: true, user });
     } catch (error) {
-        console.error('Error saving user:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('خطأ في حفظ المستخدم:', error);
+        res.status(500).json({ error: 'خطأ في الخادم' });
     }
 });
 
@@ -143,7 +153,7 @@ app.post('/api/invite', async (req, res) => {
         
         const friend = await User.findOne({ username: friendUsername });
         if (!friend) {
-            return res.json({ success: false, message: 'الصديق مش موجود في التطبيق' });
+            return res.json({ success: false, message: 'الصديق غير موجود في التطبيق' });
         }
         
         const user = await User.findOne({ username });
@@ -152,7 +162,7 @@ app.post('/api/invite', async (req, res) => {
         }
         
         if (user.referrals.includes(friendUsername)) {
-            return res.json({ success: false, message: 'تمت الدعوة من قبل' });
+            return res.json({ success: false, message: 'تمت دعوة هذا الصديق من قبل' });
         }
         
         user.referrals.push(friendUsername);
@@ -160,8 +170,8 @@ app.post('/api/invite', async (req, res) => {
         
         res.json({ success: true });
     } catch (error) {
-        console.error('Error inviting friend:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('خطأ في دعوة صديق:', error);
+        res.status(500).json({ error: 'خطأ في الخادم' });
     }
 });
 
@@ -179,18 +189,17 @@ app.post('/api/withdraw', async (req, res) => {
         user.walletBalance -= withdrawal.points;
         await user.save();
         
-        // Notify admin
         const adminChatId = process.env.ADMIN_CHAT_ID;
         if (adminChatId) {
             bot.sendMessage(adminChatId, 
                 `💰 طلب سحب جديد:\nالمستخدم: ${username}\nالطريقة: ${withdrawal.methodName}\nالمبلغ: ${withdrawal.amountEGP} جنيه\nالنقاط: ${withdrawal.points}\nالتفاصيل: ${withdrawal.accountDetails}`
-            ).catch(e => console.log('Admin notification error:', e));
+            ).catch(e => console.log('خطأ في إرسال إشعار للمشرف:', e.message));
         }
         
         res.json({ success: true });
     } catch (error) {
-        console.error('Error processing withdrawal:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('خطأ في معالجة طلب السحب:', error);
+        res.status(500).json({ error: 'خطأ في الخادم' });
     }
 });
 
@@ -205,10 +214,10 @@ async function createDefaultAdmin() {
                 password: hashedPassword
             });
             await admin.save();
-            console.log('✅ Default admin created (username: admin, password: admin123)');
+            console.log('✅ تم إنشاء مشرف افتراضي (admin/admin123)');
         }
     } catch (error) {
-        console.error('Error creating default admin:', error);
+        console.error('خطأ في إنشاء المشرف الافتراضي:', error);
     }
 }
 createDefaultAdmin();
@@ -231,8 +240,8 @@ app.post('/admin/login', async (req, res) => {
             res.send('<script>alert("خطأ في اسم المستخدم أو كلمة المرور"); window.location.href="/admin/login";</script>');
         }
     } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).send('Server error');
+        console.error('خطأ في تسجيل الدخول:', error);
+        res.status(500).send('خطأ في الخادم');
     }
 });
 
@@ -246,36 +255,36 @@ app.get('/admin/dashboard', async (req, res) => {
         const users = await User.find().sort({ points: -1 });
         const stats = {
             totalUsers: users.length,
-            totalPoints: users.reduce((sum, u) => sum + u.points, 0),
-            totalWithdrawn: users.reduce((sum, u) => sum + (u.walletBalance || 0), 0),
+            totalPoints: users.reduce((sum, u) => sum + (u.points || 0), 0),
+            totalWithdrawn: users.reduce((sum, u) => sum + ((u.walletBalance || 0) - (u.points || 0)), 0),
             pendingWithdrawals: users.reduce((sum, u) => sum + u.pendingWithdrawals.filter(w => w.status === 'pending').length, 0)
         };
         
         res.render('dashboard', { users, stats });
     } catch (error) {
-        console.error('Dashboard error:', error);
-        res.status(500).send('Server error');
+        console.error('خطأ في لوحة التحكم:', error);
+        res.status(500).send('خطأ في الخادم');
     }
 });
 
 // Admin API: Get user details
 app.get('/admin/api/user/:username', async (req, res) => {
     if (!req.session.admin) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: 'غير مصرح' });
     }
     
     try {
         const user = await User.findOne({ username: req.params.username });
         res.json(user);
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'خطأ في الخادم' });
     }
 });
 
 // Admin API: Update user points
 app.post('/admin/api/user/update-points', async (req, res) => {
     if (!req.session.admin) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: 'غير مصرح' });
     }
     
     try {
@@ -283,7 +292,7 @@ app.post('/admin/api/user/update-points', async (req, res) => {
         const user = await User.findOne({ username });
         
         if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+            return res.status(404).json({ error: 'المستخدم غير موجود' });
         }
         
         if (action === 'set') {
@@ -297,15 +306,15 @@ app.post('/admin/api/user/update-points', async (req, res) => {
         await user.save();
         res.json({ success: true, user });
     } catch (error) {
-        console.error('Error updating points:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('خطأ في تحديث النقاط:', error);
+        res.status(500).json({ error: 'خطأ في الخادم' });
     }
 });
 
 // Admin API: Process withdrawal
 app.post('/admin/api/withdrawal/:id/:action', async (req, res) => {
     if (!req.session.admin) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: 'غير مصرح' });
     }
     
     try {
@@ -314,7 +323,7 @@ app.post('/admin/api/withdrawal/:id/:action', async (req, res) => {
         
         const user = await User.findOne({ 'pendingWithdrawals._id': withdrawalId });
         if (!user) {
-            return res.status(404).json({ error: 'Withdrawal not found' });
+            return res.status(404).json({ error: 'طلب السحب غير موجود' });
         }
         
         const withdrawal = user.pendingWithdrawals.id(withdrawalId);
@@ -327,17 +336,16 @@ app.post('/admin/api/withdrawal/:id/:action', async (req, res) => {
         
         await user.save();
         
-        // Notify user
         bot.sendMessage(user.username, 
             action === 'approve' 
                 ? `✅ تمت الموافقة على طلب السحب بقيمة ${withdrawal.amountEGP} جنيه`
                 : `❌ تم رفض طلب السحب بقيمة ${withdrawal.amountEGP} جنيه`
-        ).catch(e => console.log('User notification error:', e));
+        ).catch(e => console.log('خطأ في إرسال إشعار للمستخدم:', e.message));
         
         res.json({ success: true });
     } catch (error) {
-        console.error('Error processing withdrawal:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('خطأ في معالجة طلب السحب:', error);
+        res.status(500).json({ error: 'خطأ في الخادم' });
     }
 });
 
@@ -351,18 +359,20 @@ app.get('/admin/logout', (req, res) => {
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     const username = msg.from.username || msg.from.first_name;
+    console.log(`📩 تم استلام /start من ${username} (Chat ID: ${chatId})`);
     
     try {
         let user = await User.findOne({ username });
         if (!user) {
             user = new User({ username });
             await user.save();
-            console.log(`✅ New user from bot: ${username}`);
+            console.log(`✅ مستخدم جديد من البوت: ${username}`);
         }
         
         const appUrl = `${appBaseUrl}/?user=${username}`;
+        console.log(`📤 جاري إرسال الرد إلى ${username}...`);
         
-        bot.sendMessage(chatId, `مرحباً ${username}! 👋\n\n🎡 اهلاً بك في تطبيق عجلة الحظ\n💰 اكسب النقاط ودعوة الأصدقاء`, {
+        await bot.sendMessage(chatId, `مرحباً ${username}! 👋\n\n🎡 أهلاً بك في تطبيق عجلة الحظ\n💰 اكسب النقاط ودعوة الأصدقاء`, {
             reply_markup: {
                 inline_keyboard: [
                     [{ text: '🎮 فتح التطبيق', web_app: { url: appUrl } }],
@@ -370,8 +380,9 @@ bot.onText(/\/start/, async (msg) => {
                 ]
             }
         });
+        console.log(`✅ تم إرسال الرد بنجاح إلى ${username}`);
     } catch (error) {
-        console.error('Error in /start:', error);
+        console.error('❌ خطأ في معالجة /start:', error.message);
     }
 });
 
@@ -380,8 +391,13 @@ bot.onText(/\/admin/, (msg) => {
     bot.sendMessage(chatId, `🔐 لوحة تحكم المشرف:\n${appBaseUrl}/admin/login`);
 });
 
+// استقبال أي رسالة نصية أخرى (للتأكد)
+bot.on('message', (msg) => {
+    console.log(`📨 رسالة واردة من ${msg.from.username || msg.from.first_name}: ${msg.text}`);
+});
+
 app.listen(PORT, () => {
-    console.log(`✅ الخادم شغال على بورت ${PORT}`);
-    console.log(`📁 الملفات بتتخدم من: ${__dirname}`);
-    console.log(`🔗 Webhook URL: ${webhookUrl}`);
+    console.log(`✅ الخادم يعمل على المنفذ ${PORT}`);
+    console.log(`📁 الملفات الثابتة تخدم من: ${__dirname}`);
+    console.log(`🔗 رابط التطبيق: ${appBaseUrl}`);
 });
