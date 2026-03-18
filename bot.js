@@ -3,9 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-const mongoose = require('mongoose');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
+const { Pool } = require('pg');
 
 // Load environment variables
 require('dotenv').config();
@@ -16,12 +16,10 @@ if (!token) {
     process.exit(1);
 }
 
-// ✅ استخدام Webhook بدلاً من Polling
 const bot = new TelegramBot(token);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ الحصول على رابط التطبيق الأساسي
 const appBaseUrl = process.env.APP_URL;
 if (!appBaseUrl) {
     console.error("❌ خطأ فادح: APP_URL غير موجود. تأكد من إضافته في متغيرات البيئة.");
@@ -30,76 +28,87 @@ if (!appBaseUrl) {
 const webhookUrl = `${appBaseUrl}/bot${token}`;
 console.log(`🔗 محاولة تعيين Webhook إلى: ${webhookUrl}`);
 
-// تعيين Webhook
 bot.setWebHook(webhookUrl)
     .then(() => console.log('✅ Webhook تم تعيينه بنجاح'))
     .catch(err => console.error('❌ فشل تعيين Webhook:', err.message));
 
-// ✅ MongoDB Connection مع تأخير 4 ثواني (الحل العملي)
-const MONGODB_URI = process.env.MONGODB_URI;
-if (!MONGODB_URI) {
-    console.error("❌ خطأ فادح: MONGODB_URI غير موجود. تأكد من إضافته في متغيرات البيئة.");
+// ✅ PostgreSQL Connection
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+    console.error("❌ خطأ فادح: DATABASE_URL غير موجود. تأكد من إضافته في متغيرات البيئة.");
     process.exit(1);
 }
 
-// 🔥 تأخير الاتصال 4 ثواني عشان الشبكة الداخلية تبدأ
-const connectWithDelay = async () => {
-    console.log('⏳ إنتظار 4 ثواني قبل محاولة الاتصال بقاعدة البيانات...');
-    await new Promise(resolve => setTimeout(resolve, 4000));
+const pool = new Pool({
+    connectionString: databaseUrl,
+    ssl: {
+        rejectUnauthorized: false
+    }
+});
 
-    console.log('🔌 جاري الاتصال بـ MongoDB...');
+// إنشاء الجداول إذا لم تكن موجودة
+const initDb = async () => {
     try {
-        await mongoose.connect(MONGODB_URI, { 
-            useNewUrlParser: true, 
-            useUnifiedTopology: true,
-            serverSelectionTimeoutMS: 5000 // timeout بعد 5 ثواني
-        });
-        console.log('✅ تم الاتصال بـ MongoDB بنجاح');
-        
-        // بعد الاتصال، نبدأ في إنشاء المشرف الافتراضي
-        createDefaultAdmin();
-    } catch (err) {
-        console.error('❌ فشل الاتصال بـ MongoDB:', err.message);
-        // مش هنخرج من البرنامج عشان الخدمة متوقفش
+        // جدول المستخدمين
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(255) UNIQUE NOT NULL,
+                points INTEGER DEFAULT 0,
+                wallet_balance INTEGER DEFAULT 0,
+                spins INTEGER DEFAULT 3,
+                last_checkin DATE,
+                referrals TEXT[] DEFAULT '{}',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // جدول طلبات السحب
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS withdrawals (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(255) REFERENCES users(username),
+                method VARCHAR(50),
+                method_name VARCHAR(100),
+                account_details TEXT,
+                points INTEGER,
+                amount_egp DECIMAL(10,2),
+                date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                status VARCHAR(20) DEFAULT 'pending'
+            )
+        `);
+
+        // جدول المشرفين
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS admins (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL
+            )
+        `);
+
+        console.log('✅ تم إنشاء جداول PostgreSQL بنجاح');
+
+        // إنشاء مشرف افتراضي
+        const adminExists = await pool.query('SELECT * FROM admins WHERE username = $1', ['admin']);
+        if (adminExists.rows.length === 0) {
+            const hashedPassword = await bcrypt.hash('admin123', 10);
+            await pool.query(
+                'INSERT INTO admins (username, password) VALUES ($1, $2)',
+                ['admin', hashedPassword]
+            );
+            console.log('✅ تم إنشاء مشرف افتراضي (admin/admin123)');
+        }
+    } catch (error) {
+        console.error('❌ خطأ في إنشاء الجداول:', error.message);
     }
 };
 
-// تشغيل دالة الاتصال
-connectWithDelay();
-
-// User Schema
-const userSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true },
-    points: { type: Number, default: 0 },
-    walletBalance: { type: Number, default: 0 },
-    spins: { type: Number, default: 3 },
-    lastCheckin: { type: Date, default: null },
-    referrals: [{ type: String }],
-    pendingWithdrawals: [{
-        method: String,
-        methodName: String,
-        accountDetails: String,
-        points: Number,
-        amountEGP: Number,
-        date: { type: Date, default: Date.now },
-        status: { type: String, default: 'pending' }
-    }],
-    createdAt: { type: Date, default: Date.now },
-    lastActive: { type: Date, default: Date.now }
-});
-
-// Admin Schema
-const adminSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true },
-    password: { type: String, required: true }
-});
-
-const User = mongoose.model('User', userSchema);
-const Admin = mongoose.model('Admin', adminSchema);
+initDb();
 
 // Middleware
-app.use(express.static(path.join(__dirname, 'public'))); 
-app.use(express.static(__dirname)); 
+app.use(express.static(__dirname));
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -110,17 +119,14 @@ app.use(session({
     cookie: { secure: false }
 }));
 
-// View engine setup
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// ✅ Webhook endpoint
 app.post(`/bot${token}`, (req, res) => {
     bot.processUpdate(req.body);
     res.sendStatus(200);
 });
 
-// Routes
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -128,19 +134,35 @@ app.get('/', (req, res) => {
 // API: Get user data
 app.get('/api/user/:username', async (req, res) => {
     try {
-        const username = req.params.username;
-        let user = await User.findOne({ username });
+        const { username } = req.params;
+        let result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         
-        if (!user) {
-            user = new User({ username });
-            await user.save();
+        if (result.rows.length === 0) {
+            result = await pool.query(
+                'INSERT INTO users (username) VALUES ($1) RETURNING *',
+                [username]
+            );
             console.log(`✅ مستخدم جديد تم إنشاؤه: ${username}`);
         }
         
-        user.lastActive = new Date();
-        await user.save();
+        await pool.query(
+            'UPDATE users SET last_active = CURRENT_TIMESTAMP WHERE username = $1',
+            [username]
+        );
         
-        res.json(user);
+        const user = result.rows[0];
+        // تحويل الـ referrals من array نصي إلى array
+        user.referrals = user.referrals || [];
+        
+        res.json({
+            username: user.username,
+            points: user.points,
+            walletBalance: user.wallet_balance,
+            spins: user.spins,
+            lastCheckin: user.last_checkin,
+            referrals: user.referrals,
+            pendingWithdrawals: [] // هنحسنها بعدين
+        });
     } catch (error) {
         console.error('خطأ في جلب المستخدم:', error);
         res.status(500).json({ error: 'خطأ في الخادم' });
@@ -151,16 +173,27 @@ app.get('/api/user/:username', async (req, res) => {
 app.post('/api/save-user', async (req, res) => {
     try {
         const { username, data } = req.body;
-        delete data._id;
-        delete data.__v;
         
-        const user = await User.findOneAndUpdate(
-            { username },
-            { ...data, lastActive: new Date() },
-            { new: true, upsert: true }
+        await pool.query(
+            `UPDATE users SET 
+                points = $1,
+                wallet_balance = $2,
+                spins = $3,
+                last_checkin = $4,
+                referrals = $5,
+                last_active = CURRENT_TIMESTAMP
+            WHERE username = $6`,
+            [
+                data.points || 0,
+                data.walletBalance || 0,
+                data.spins || 3,
+                data.lastCheckin,
+                data.referrals || [],
+                username
+            ]
         );
         
-        res.json({ success: true, user });
+        res.json({ success: true });
     } catch (error) {
         console.error('خطأ في حفظ المستخدم:', error);
         res.status(500).json({ error: 'خطأ في الخادم' });
@@ -172,22 +205,26 @@ app.post('/api/invite', async (req, res) => {
     try {
         const { username, friendUsername } = req.body;
         
-        const friend = await User.findOne({ username: friendUsername });
-        if (!friend) {
+        const friend = await pool.query('SELECT * FROM users WHERE username = $1', [friendUsername]);
+        if (friend.rows.length === 0) {
             return res.json({ success: false, message: 'الصديق غير موجود في التطبيق' });
         }
         
-        const user = await User.findOne({ username });
-        if (!user) {
+        const user = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        if (user.rows.length === 0) {
             return res.json({ success: false, message: 'المستخدم غير موجود' });
         }
         
-        if (user.referrals.includes(friendUsername)) {
+        const referrals = user.rows[0].referrals || [];
+        if (referrals.includes(friendUsername)) {
             return res.json({ success: false, message: 'تمت دعوة هذا الصديق من قبل' });
         }
         
-        user.referrals.push(friendUsername);
-        await user.save();
+        referrals.push(friendUsername);
+        await pool.query(
+            'UPDATE users SET referrals = $1 WHERE username = $2',
+            [referrals, username]
+        );
         
         res.json({ success: true });
     } catch (error) {
@@ -201,14 +238,32 @@ app.post('/api/withdraw', async (req, res) => {
     try {
         const { username, withdrawal } = req.body;
         
-        const user = await User.findOne({ username });
-        if (!user) {
+        const user = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        if (user.rows.length === 0) {
             return res.json({ success: false, message: 'المستخدم غير موجود' });
         }
         
-        user.pendingWithdrawals.push(withdrawal);
-        user.walletBalance -= withdrawal.points;
-        await user.save();
+        // إضافة طلب السحب
+        await pool.query(
+            `INSERT INTO withdrawals 
+                (username, method, method_name, account_details, points, amount_egp, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [
+                username,
+                withdrawal.method,
+                withdrawal.methodName,
+                withdrawal.accountDetails,
+                withdrawal.points,
+                withdrawal.amountEGP,
+                'pending'
+            ]
+        );
+        
+        // تحديث رصيد المحفظة
+        await pool.query(
+            'UPDATE users SET wallet_balance = wallet_balance - $1 WHERE username = $2',
+            [withdrawal.points, username]
+        );
         
         const adminChatId = process.env.ADMIN_CHAT_ID;
         if (adminChatId) {
@@ -224,42 +279,17 @@ app.post('/api/withdraw', async (req, res) => {
     }
 });
 
-// Admin Panel Routes
-async function createDefaultAdmin() {
-    try {
-        // نتأكد إن الاتصال بقاعدة البيانات تم قبل محاولة البحث
-        if (mongoose.connection.readyState !== 1) {
-            console.log('⏳ إنتظار الاتصال بقاعدة البيانات قبل إنشاء المشرف...');
-            return;
-        }
-        
-        const adminExists = await Admin.findOne({ username: 'admin' });
-        if (!adminExists) {
-            const hashedPassword = await bcrypt.hash('admin123', 10);
-            const admin = new Admin({
-                username: 'admin',
-                password: hashedPassword
-            });
-            await admin.save();
-            console.log('✅ تم إنشاء مشرف افتراضي (admin/admin123)');
-        }
-    } catch (error) {
-        console.error('خطأ في إنشاء المشرف الافتراضي:', error);
-    }
-}
-
 // Admin login page
 app.get('/admin/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin-login.html'));
 });
 
-// Admin login API
 app.post('/admin/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        const admin = await Admin.findOne({ username });
+        const result = await pool.query('SELECT * FROM admins WHERE username = $1', [username]);
         
-        if (admin && await bcrypt.compare(password, admin.password)) {
+        if (result.rows.length > 0 && await bcrypt.compare(password, result.rows[0].password)) {
             req.session.admin = true;
             res.redirect('/admin/dashboard');
         } else {
@@ -271,19 +301,25 @@ app.post('/admin/login', async (req, res) => {
     }
 });
 
-// Admin dashboard
 app.get('/admin/dashboard', async (req, res) => {
     if (!req.session.admin) {
         return res.redirect('/admin/login');
     }
     
     try {
-        const users = await User.find().sort({ points: -1 });
+        const usersResult = await pool.query('SELECT * FROM users ORDER BY points DESC');
+        const withdrawalsResult = await pool.query("SELECT * FROM withdrawals WHERE status = 'pending'");
+        
+        const users = usersResult.rows.map(user => ({
+            ...user,
+            referrals: user.referrals || []
+        }));
+        
         const stats = {
             totalUsers: users.length,
             totalPoints: users.reduce((sum, u) => sum + (u.points || 0), 0),
-            totalWithdrawn: users.reduce((sum, u) => sum + ((u.walletBalance || 0) - (u.points || 0)), 0),
-            pendingWithdrawals: users.reduce((sum, u) => sum + u.pendingWithdrawals.filter(w => w.status === 'pending').length, 0)
+            totalWithdrawn: users.reduce((sum, u) => sum + (u.wallet_balance || 0), 0),
+            pendingWithdrawals: withdrawalsResult.rows.length
         };
         
         res.render('dashboard', { users, stats });
@@ -293,21 +329,30 @@ app.get('/admin/dashboard', async (req, res) => {
     }
 });
 
-// Admin API: Get user details
 app.get('/admin/api/user/:username', async (req, res) => {
     if (!req.session.admin) {
         return res.status(401).json({ error: 'غير مصرح' });
     }
     
     try {
-        const user = await User.findOne({ username: req.params.username });
+        const userResult = await pool.query('SELECT * FROM users WHERE username = $1', [req.params.username]);
+        const withdrawalsResult = await pool.query('SELECT * FROM withdrawals WHERE username = $1 ORDER BY date DESC', [req.params.username]);
+        
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'المستخدم غير موجود' });
+        }
+        
+        const user = userResult.rows[0];
+        user.pendingWithdrawals = withdrawalsResult.rows;
+        user.referrals = user.referrals || [];
+        
         res.json(user);
     } catch (error) {
+        console.error('خطأ في جلب بيانات المستخدم:', error);
         res.status(500).json({ error: 'خطأ في الخادم' });
     }
 });
 
-// Admin API: Update user points
 app.post('/admin/api/user/update-points', async (req, res) => {
     if (!req.session.admin) {
         return res.status(401).json({ error: 'غير مصرح' });
@@ -315,57 +360,55 @@ app.post('/admin/api/user/update-points', async (req, res) => {
     
     try {
         const { username, points, action } = req.body;
-        const user = await User.findOne({ username });
-        
-        if (!user) {
-            return res.status(404).json({ error: 'المستخدم غير موجود' });
-        }
         
         if (action === 'set') {
-            user.points = points;
-            user.walletBalance = points;
+            await pool.query(
+                'UPDATE users SET points = $1, wallet_balance = $1 WHERE username = $2',
+                [points, username]
+            );
         } else if (action === 'add') {
-            user.points += points;
-            user.walletBalance += points;
+            await pool.query(
+                'UPDATE users SET points = points + $1, wallet_balance = wallet_balance + $1 WHERE username = $2',
+                [points, username]
+            );
         }
         
-        await user.save();
-        res.json({ success: true, user });
+        res.json({ success: true });
     } catch (error) {
         console.error('خطأ في تحديث النقاط:', error);
         res.status(500).json({ error: 'خطأ في الخادم' });
     }
 });
 
-// Admin API: Process withdrawal
 app.post('/admin/api/withdrawal/:id/:action', async (req, res) => {
     if (!req.session.admin) {
         return res.status(401).json({ error: 'غير مصرح' });
     }
     
     try {
-        const withdrawalId = req.params.id;
-        const action = req.params.action;
+        const { id, action } = req.params;
         
-        const user = await User.findOne({ 'pendingWithdrawals._id': withdrawalId });
-        if (!user) {
+        const withdrawalResult = await pool.query('SELECT * FROM withdrawals WHERE id = $1', [id]);
+        if (withdrawalResult.rows.length === 0) {
             return res.status(404).json({ error: 'طلب السحب غير موجود' });
         }
         
-        const withdrawal = user.pendingWithdrawals.id(withdrawalId);
-        withdrawal.status = action === 'approve' ? 'approved' : 'rejected';
+        const withdrawal = withdrawalResult.rows[0];
+        const newStatus = action === 'approve' ? 'approved' : 'rejected';
+        
+        await pool.query('UPDATE withdrawals SET status = $1 WHERE id = $2', [newStatus, id]);
         
         if (action === 'reject') {
-            user.walletBalance += withdrawal.points;
-            user.points += withdrawal.points;
+            await pool.query(
+                'UPDATE users SET wallet_balance = wallet_balance + $1, points = points + $1 WHERE username = $2',
+                [withdrawal.points, withdrawal.username]
+            );
         }
         
-        await user.save();
-        
-        bot.sendMessage(user.username, 
+        bot.sendMessage(withdrawal.username, 
             action === 'approve' 
-                ? `✅ تمت الموافقة على طلب السحب بقيمة ${withdrawal.amountEGP} جنيه`
-                : `❌ تم رفض طلب السحب بقيمة ${withdrawal.amountEGP} جنيه`
+                ? `✅ تمت الموافقة على طلب السحب بقيمة ${withdrawal.amount_egp} جنيه`
+                : `❌ تم رفض طلب السحب بقيمة ${withdrawal.amount_egp} جنيه`
         ).catch(e => console.log('خطأ في إرسال إشعار للمستخدم:', e.message));
         
         res.json({ success: true });
@@ -375,28 +418,33 @@ app.post('/admin/api/withdrawal/:id/:action', async (req, res) => {
     }
 });
 
-// Admin logout
 app.get('/admin/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/admin/login');
 });
 
-// Bot commands
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     const username = msg.from.username || msg.from.first_name;
     console.log(`📩 تم استلام /start من ${username} (Chat ID: ${chatId})`);
     
     try {
-        let user = await User.findOne({ username });
-        if (!user) {
-            user = new User({ username });
-            await user.save();
+        let result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        
+        if (result.rows.length === 0) {
+            result = await pool.query(
+                'INSERT INTO users (username) VALUES ($1) RETURNING *',
+                [username]
+            );
             console.log(`✅ مستخدم جديد من البوت: ${username}`);
         }
         
+        await pool.query(
+            'UPDATE users SET last_active = CURRENT_TIMESTAMP WHERE username = $1',
+            [username]
+        );
+        
         const appUrl = `${appBaseUrl}/?user=${username}`;
-        console.log(`📤 جاري إرسال الرد إلى ${username}...`);
         
         await bot.sendMessage(chatId, `مرحباً ${username}! 👋\n\n🎡 أهلاً بك في تطبيق عجلة الحظ\n💰 اكسب النقاط ودعوة الأصدقاء`, {
             reply_markup: {
@@ -417,13 +465,7 @@ bot.onText(/\/admin/, (msg) => {
     bot.sendMessage(chatId, `🔐 لوحة تحكم المشرف:\n${appBaseUrl}/admin/login`);
 });
 
-// استقبال أي رسالة نصية أخرى (للتأكد)
-bot.on('message', (msg) => {
-    console.log(`📨 رسالة واردة من ${msg.from.username || msg.from.first_name}: ${msg.text}`);
-});
-
 app.listen(PORT, () => {
     console.log(`✅ الخادم يعمل على المنفذ ${PORT}`);
-    console.log(`📁 الملفات الثابتة تخدم من: ${__dirname}`);
     console.log(`🔗 رابط التطبيق: ${appBaseUrl}`);
 });
