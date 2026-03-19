@@ -2,10 +2,10 @@
 let userData = {
     username: '',
     points: 0,
+    walletBalance: 0,
     spins: 0,
     lastCheckin: null,
     referrals: [],
-    walletBalance: 0,
     pendingWithdrawals: []
 };
 
@@ -25,12 +25,12 @@ const withdrawalSettings = {
 // تهيئة عجلة الحظ (من 0 إلى 50)
 const canvas = document.getElementById('wheelCanvas');
 const ctx = canvas.getContext('2d');
-const segments = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]; // بالظبط زي ما طلبت
+const segments = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
 const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD', '#D4A5A5', '#9B59B6', '#3498DB', '#E67E22', '#2ECC71', '#F1C40F'];
 let spinning = false;
 let currentAngle = 0;
-let spinResult = null; // لتخزين نتيجة اللفة
-let spinEndTime = null; // وقت انتهاء اللفة
+let spinResult = null;
+let spinEndTime = null;
 
 // مؤقتات الإعلانات
 let adTimers = {
@@ -39,13 +39,9 @@ let adTimers = {
     '6113781': 0
 };
 
-// مؤقت إعلان النقاط
 let pointsAdTimer = 0;
-
-// متغيرات لتأخير إضافة النقاط
-let pendingAdPoints = null; // للإعلانات العادية
-let pendingPointsAd = null; // لإعلان النقاط
-let pendingSpinPoints = null; // للعجلة
+let pendingAdPoints = null;
+let pendingPointsAd = null;
 
 // تهيئة التطبيق
 document.addEventListener('DOMContentLoaded', function() {
@@ -90,9 +86,8 @@ document.addEventListener('DOMContentLoaded', function() {
         submitWithdrawal();
     });
     
-    // تحديث المؤقتات كل ثانية
     setInterval(updateTimers, 1000);
-    setInterval(checkPendingPoints, 100); // كل 100 ميللي ثانية نتحقق من النقاط المعلقة
+    setInterval(checkPendingPoints, 100);
 });
 
 // رسم عجلة الحظ
@@ -110,7 +105,6 @@ function drawWheel() {
         ctx.closePath();
         ctx.fill();
         
-        // رسم النص
         ctx.save();
         ctx.translate(150, 150);
         ctx.rotate(startAngle + anglePerSegment / 2);
@@ -121,7 +115,6 @@ function drawWheel() {
         ctx.restore();
     }
     
-    // رسم السهم
     ctx.beginPath();
     ctx.fillStyle = '#333';
     ctx.moveTo(140, 20);
@@ -140,28 +133,25 @@ function spinWheel() {
         return;
     }
     
-    // خصم النقاط فوراً
     userData.points -= 5;
     updateUI();
+    saveUserData(); // ✅ حفظ فوري بعد خصم النقاط
     
     spinning = true;
     spinResult = null;
     document.getElementById('spinBtn').disabled = true;
     
-    // زوايا عشوائية للدوران
-    const spinAngle = 30 + Math.random() * 20; // عدد اللفات
+    const spinAngle = 30 + Math.random() * 20;
     const targetAngle = currentAngle + spinAngle * Math.PI * 2;
-    const duration = 3000; // 3 ثواني
+    const duration = 3000;
     const startTime = Date.now();
     const startAngle = currentAngle;
     
-    // حساب النتيجة بناءً على الزاوية النهائية
     function animate() {
         const now = Date.now();
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // Easing function for smooth stop
         const easeOut = 1 - Math.pow(1 - progress, 3);
         currentAngle = startAngle + (targetAngle - startAngle) * easeOut;
         
@@ -170,31 +160,24 @@ function spinWheel() {
         if (progress < 1) {
             requestAnimationFrame(animate);
         } else {
-            // انتهى الدوران - نحسب الجائزة بدقة
             spinning = false;
             
-            // حساب القطعة التي وقف عندها السهم (السهم في الزاوية 270 درجة أو -90 درجة)
-            const arrowAngle = (Math.PI * 3) / 2; // 270 degrees
+            const arrowAngle = (Math.PI * 3) / 2;
             const wheelAngle = currentAngle % (Math.PI * 2);
             let segmentAngle = (arrowAngle - wheelAngle + Math.PI * 2) % (Math.PI * 2);
             const anglePerSegment = (Math.PI * 2) / segments.length;
             let segmentIndex = Math.floor(segmentAngle / anglePerSegment);
             
-            // التأكد من أن المؤشر داخل النطاق الصحيح
             if (segmentIndex >= segments.length) segmentIndex = 0;
             
             const prize = segments[segmentIndex];
             
-            // تخزين النتيجة وإضافتها بعد 3 ثواني (وقت الدوران)
             spinResult = prize;
-            spinEndTime = Date.now() + 3000; // هنضيفها بعد 3 ثواني من الآن
+            spinEndTime = Date.now() + 3000;
             
-            // تحديث واجهة المستخدم
             document.getElementById('spinBtn').disabled = userData.points < 5;
             
             alert(`🎉 العجلة وقفت على ${prize} نقطة! هتضاف لحسابك بعد 3 ثواني`);
-            
-            saveUserData();
         }
     }
     
@@ -204,42 +187,36 @@ function spinWheel() {
 // التحقق من النقاط المعلقة
 function checkPendingPoints() {
     const now = Date.now();
+    let needsSave = false;
     
-    // نقاط العجلة
     if (spinResult !== null && spinEndTime && now >= spinEndTime) {
         userData.points += spinResult;
         userData.walletBalance += spinResult;
-        
         alert(`✅ تمت إضافة ${spinResult} نقطة من عجلة الحظ!`);
-        
         spinResult = null;
         spinEndTime = null;
-        updateUI();
-        saveUserData();
+        needsSave = true;
     }
     
-    // نقاط الإعلانات العادية
     if (pendingAdPoints !== null && pendingAdPoints.endTime && now >= pendingAdPoints.endTime) {
-        userData.points += 1; // نقطة واحدة
+        userData.points += 1;
         userData.walletBalance += 1;
-        
         alert(`✅ تمت إضافة نقطة من مشاهدة الإعلان!`);
-        
         pendingAdPoints = null;
-        updateUI();
-        saveUserData();
+        needsSave = true;
     }
     
-    // نقاط إعلان النقطتين
     if (pendingPointsAd !== null && pendingPointsAd.endTime && now >= pendingPointsAd.endTime) {
         userData.points += 2;
         userData.walletBalance += 2;
-        
         alert(`✅ تمت إضافة نقطتين من مشاهدة الإعلان!`);
-        
         pendingPointsAd = null;
+        needsSave = true;
+    }
+    
+    if (needsSave) {
         updateUI();
-        saveUserData();
+        saveUserData(); // ✅ حفظ فوري بعد إضافة النقاط
     }
 }
 
@@ -271,19 +248,16 @@ function playAd(spotId) {
     showFunc().then(() => {
         console.log(`✅ تم تشغيل الإعلان ${spotId}`);
         
-        // بدء المؤقت (20 ثانية)
         adTimers[spotId] = 20;
         
-        // تعطيل الزر
         const adButton = document.querySelector(`[data-spot-id="${spotId}"] .btn-ad`);
         if (adButton) {
             adButton.disabled = true;
         }
         
-        // تخزين النقطة لتضاف بعد 20 ثانية
         pendingAdPoints = {
             spotId: spotId,
-            endTime: Date.now() + (20 * 1000) // 20 ثانية
+            endTime: Date.now() + (20 * 1000)
         };
         
         alert('✅ تم مشاهدة الإعلان! النقطة هتضاف بعد 20 ثانية');
@@ -312,13 +286,11 @@ function watchAdForPoints() {
     showFunc().then(() => {
         console.log('✅ تم تشغيل إعلان النقاط');
         
-        // بدء المؤقت (15 ثانية)
         pointsAdTimer = 15;
         document.getElementById('watchAdForSpins').disabled = true;
         
-        // تخزين النقطتين لتضاف بعد 15 ثانية
         pendingPointsAd = {
-            endTime: Date.now() + (15 * 1000) // 15 ثانية
+            endTime: Date.now() + (15 * 1000)
         };
         
         alert('✅ تم مشاهدة الإعلان! نقطتين هتضاف بعد 15 ثانية');
@@ -385,7 +357,7 @@ function dailyCheckin() {
     
     alert('✅ تمت إضافة 10 نقاط');
     updateUI();
-    saveUserData();
+    saveUserData(); // ✅ حفظ فوري بعد الدخول اليومي
 }
 
 // دعوة صديق
@@ -505,7 +477,7 @@ function submitWithdrawal() {
             document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
             
             updateUI();
-            saveUserData();
+            saveUserData(); // ✅ حفظ فوري بعد السحب
         } else {
             alert(data.message || 'حصل خطأ');
         }
@@ -531,27 +503,54 @@ function updateUI() {
     spinBtn.disabled = userData.points < 5 || spinning;
 }
 
-// حفظ بيانات المستخدم
+// ✅ أهم دالة: حفظ بيانات المستخدم في MongoDB
 function saveUserData() {
+    console.log('💾 جاري حفظ البيانات...');
     fetch('/api/save-user', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
             username: userData.username,
-            data: userData
+            data: {
+                points: userData.points,
+                walletBalance: userData.walletBalance,
+                spins: userData.spins,
+                lastCheckin: userData.lastCheckin,
+                referrals: userData.referrals,
+                pendingWithdrawals: userData.pendingWithdrawals
+            }
         })
-    }).catch(error => console.error('خطأ في الحفظ:', error));
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('✅ تم حفظ البيانات بنجاح');
+        } else {
+            console.error('❌ فشل حفظ البيانات:', data.error);
+        }
+    })
+    .catch(error => console.error('❌ خطأ في حفظ البيانات:', error));
 }
 
 // تحميل بيانات المستخدم
 function loadUserData() {
+    console.log('📥 جاري تحميل البيانات...');
     fetch(`/api/user/${userData.username}`)
     .then(response => response.json())
     .then(data => {
-        if (data) {
-            userData = {...userData, ...data};
+        if (data && !data.error) {
+            userData = {
+                ...userData,
+                points: data.points || 0,
+                walletBalance: data.walletBalance || 0,
+                spins: data.spins || 3,
+                lastCheckin: data.lastCheckin,
+                referrals: data.referrals || [],
+                pendingWithdrawals: data.pendingWithdrawals || []
+            };
+            console.log('✅ تم تحميل البيانات:', userData);
             updateUI();
         }
     })
-    .catch(error => console.error('خطأ في التحميل:', error));
-        }
+    .catch(error => console.error('❌ خطأ في تحميل البيانات:', error));
+}
