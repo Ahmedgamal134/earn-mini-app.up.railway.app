@@ -15,7 +15,17 @@ if (!token) {
     process.exit(1);
 }
 
-const bot = new TelegramBot(token, { polling: true });
+// ✅ تحسين إعدادات Polling لتجنب Conflict
+const bot = new TelegramBot(token, { 
+    polling: {
+        interval: 300,
+        autoStart: true,
+        params: {
+            timeout: 10
+        }
+    }
+});
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -132,11 +142,19 @@ app.get('/api/user/:username', async (req, res) => {
     }
 });
 
-// ✅ أهم حاجة: API حفظ النقاط
+// ✅ API حفظ النقاط (محدث مع تحسينات)
 app.post('/api/save-user', async (req, res) => {
     try {
         const { username, data } = req.body;
         
+        // ✅ التأكد من البيانات
+        console.log("📥 بيانات واردة للحفظ:", { 
+            username, 
+            points: data.points,
+            walletBalance: data.walletBalance 
+        });
+
+        // ✅ البحث عن المستخدم وتحديثه
         const user = await User.findOneAndUpdate(
             { username },
             {
@@ -147,14 +165,23 @@ app.post('/api/save-user', async (req, res) => {
                 referrals: data.referrals,
                 lastActive: new Date()
             },
-            { new: true, upsert: true }
+            { 
+                new: true, 
+                upsert: true,
+                runValidators: true
+            }
         );
         
         console.log(`✅ تم حفظ نقاط ${username}: ${data.points}`);
+        console.log("📤 البيانات بعد الحفظ:", {
+            points: user.points,
+            walletBalance: user.walletBalance
+        });
+        
         res.json({ success: true, user });
     } catch (error) {
         console.error('❌ خطأ في حفظ المستخدم:', error);
-        res.status(500).json({ error: 'خطأ في الخادم' });
+        res.status(500).json({ error: 'خطأ في الخادم', details: error.message });
     }
 });
 
@@ -396,6 +423,11 @@ bot.onText(/\/start/, async (msg) => {
 bot.onText(/\/admin/, (msg) => {
     const chatId = msg.chat.id;
     bot.sendMessage(chatId, `🔐 لوحة تحكم المشرف:\n${appBaseUrl}/admin/login`);
+});
+
+// استقبال أي رسالة نصية أخرى (للتأكد)
+bot.on('message', (msg) => {
+    console.log(`📨 رسالة واردة من ${msg.from.username || msg.from.first_name}: ${msg.text}`);
 });
 
 // ----------------------------------------
