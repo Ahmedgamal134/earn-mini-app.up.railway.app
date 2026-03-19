@@ -503,9 +503,14 @@ function updateUI() {
     spinBtn.disabled = userData.points < 5 || spinning;
 }
 
-// ✅ أهم دالة: حفظ بيانات المستخدم في MongoDB
+// ✅ أهم دالة: حفظ بيانات المستخدم في MongoDB (مع التأكيد)
 function saveUserData() {
-    console.log('💾 جاري حفظ البيانات...');
+    console.log('💾 جاري حفظ البيانات...', {
+        username: userData.username,
+        points: userData.points,
+        walletBalance: userData.walletBalance
+    });
+    
     fetch('/api/save-user', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -524,12 +529,12 @@ function saveUserData() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log('✅ تم حفظ البيانات بنجاح');
+            console.log('✅ تم حفظ البيانات بنجاح في MongoDB');
         } else {
             console.error('❌ فشل حفظ البيانات:', data.error);
         }
     })
-    .catch(error => console.error('❌ خطأ في حفظ البيانات:', error));
+    .catch(error => console.error('❌ خطأ في الشبكة:', error));
 }
 
 // تحميل بيانات المستخدم
@@ -548,7 +553,10 @@ function loadUserData() {
                 referrals: data.referrals || [],
                 pendingWithdrawals: data.pendingWithdrawals || []
             };
-            console.log('✅ تم تحميل البيانات:', userData);
+            console.log('✅ تم تحميل البيانات:', {
+                points: userData.points,
+                walletBalance: userData.walletBalance
+            });
             updateUI();
         }
     })
