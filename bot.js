@@ -3,125 +3,79 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const mongoose = require('mongoose');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
-const { Pool } = require('pg');
 
-// Load environment variables
 require('dotenv').config();
 
-// ----------------------------------------
-// ✅ 1. توكن البوت
-// ----------------------------------------
 const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) {
-    console.error("❌ خطأ فادح: توكن البوت غير موجود. تأكد من إضافته في متغيرات البيئة.");
+    console.error("❌ خطأ: التوكن مش موجود");
     process.exit(1);
 }
 
+const bot = new TelegramBot(token, { polling: true });
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ----------------------------------------
-// ✅ 2. رابط التطبيق الأساسي
-// ----------------------------------------
 const appBaseUrl = process.env.APP_URL;
 if (!appBaseUrl) {
-    console.error("❌ خطأ فادح: APP_URL غير موجود. تأكد من إضافته في متغيرات البيئة.");
+    console.error("❌ خطأ: APP_URL مش موجود");
     process.exit(1);
 }
 
 // ----------------------------------------
-// ✅ 3. إعداد Webhook (بديل Polling)
+// ✅ الاتصال بـ MongoDB
 // ----------------------------------------
-const bot = new TelegramBot(token);
-const webhookUrl = `${appBaseUrl}/bot${token}`;
-
-bot.setWebHook(webhookUrl)
-    .then(() => console.log('✅ Webhook تم تعيينه بنجاح'))
-    .catch(err => console.error('❌ فشل تعيين Webhook:', err.message));
-
-// ----------------------------------------
-// ✅ 4. الاتصال بـ PostgreSQL
-// ----------------------------------------
-const databaseUrl = process.env.DATABASE_URL;
-if (!databaseUrl) {
-    console.error("❌ خطأ فادح: DATABASE_URL غير موجود. تأكد من إضافته في متغيرات البيئة.");
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+    console.error("❌ خطأ: DATABASE_URL مش موجود");
     process.exit(1);
 }
 
-const pool = new Pool({
-    connectionString: databaseUrl,
-    ssl: {
-        rejectUnauthorized: false
-    }
+mongoose.connect(DATABASE_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+}).then(() => {
+    console.log('✅ Connected to MongoDB');
+}).catch(err => {
+    console.error('❌ MongoDB connection error:', err);
 });
 
 // ----------------------------------------
-// ✅ 5. إنشاء الجداول (مرة واحدة)
+// ✅ Schema ونماذج MongoDB
 // ----------------------------------------
-const initDb = async () => {
-    try {
-        // جدول المستخدمين
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
-                username VARCHAR(255) UNIQUE NOT NULL,
-                points INTEGER DEFAULT 0,
-                wallet_balance INTEGER DEFAULT 0,
-                spins INTEGER DEFAULT 3,
-                last_checkin DATE,
-                referrals TEXT[] DEFAULT '{}',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
+const userSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    points: { type: Number, default: 0 },
+    walletBalance: { type: Number, default: 0 },
+    spins: { type: Number, default: 3 },
+    lastCheckin: { type: Date, default: null },
+    referrals: { type: [String], default: [] },
+    pendingWithdrawals: [{
+        method: String,
+        methodName: String,
+        accountDetails: String,
+        points: Number,
+        amountEGP: Number,
+        date: { type: Date, default: Date.now },
+        status: { type: String, default: 'pending' }
+    }],
+    createdAt: { type: Date, default: Date.now },
+    lastActive: { type: Date, default: Date.now }
+});
 
-        // جدول طلبات السحب
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS withdrawals (
-                id SERIAL PRIMARY KEY,
-                username VARCHAR(255) REFERENCES users(username),
-                method VARCHAR(50),
-                method_name VARCHAR(100),
-                account_details TEXT,
-                points INTEGER,
-                amount_egp DECIMAL(10,2),
-                date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                status VARCHAR(20) DEFAULT 'pending'
-            )
-        `);
+const adminSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true }
+});
 
-        // جدول المشرفين
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS admins (
-                id SERIAL PRIMARY KEY,
-                username VARCHAR(255) UNIQUE NOT NULL,
-                password VARCHAR(255) NOT NULL
-            )
-        `);
-
-        console.log('✅ تم إنشاء جداول PostgreSQL بنجاح');
-
-        // إنشاء مشرف افتراضي
-        const adminExists = await pool.query('SELECT * FROM admins WHERE username = $1', ['admin']);
-        if (adminExists.rows.length === 0) {
-            const hashedPassword = await bcrypt.hash('admin123', 10);
-            await pool.query(
-                'INSERT INTO admins (username, password) VALUES ($1, $2)',
-                ['admin', hashedPassword]
-            );
-            console.log('✅ تم إنشاء مشرف افتراضي (admin/admin123)');
-        }
-    } catch (error) {
-        console.error('❌ خطأ في إنشاء الجداول:', error.message);
-    }
-};
-
-initDb();
+const User = mongoose.model('User', userSchema);
+const Admin = mongoose.model('Admin', adminSchema);
 
 // ----------------------------------------
-// ✅ 6. إعدادات Express
+// ✅ إعدادات Express
 // ----------------------------------------
 app.use(express.static(__dirname));
 app.use(cors());
@@ -138,54 +92,39 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // ----------------------------------------
-// ✅ 7. نقطة نهاية Webhook (يستقبل تحديثات تليجرام)
-// ----------------------------------------
-app.post(`/bot${token}`, (req, res) => {
-    bot.processUpdate(req.body);
-    res.sendStatus(200);
-});
-
-// ----------------------------------------
-// ✅ 8. الصفحة الرئيسية
+// ✅ الصفحة الرئيسية
 // ----------------------------------------
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // ----------------------------------------
-// ✅ 9. APIs الخاصة بالتطبيق
+// ✅ APIs
 // ----------------------------------------
 
 // API: Get user data
 app.get('/api/user/:username', async (req, res) => {
     try {
         const { username } = req.params;
-        let result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        let user = await User.findOne({ username });
         
-        if (result.rows.length === 0) {
-            result = await pool.query(
-                'INSERT INTO users (username) VALUES ($1) RETURNING *',
-                [username]
-            );
-            console.log(`✅ مستخدم جديد تم إنشاؤه: ${username}`);
+        if (!user) {
+            user = new User({ username });
+            await user.save();
+            console.log(`✅ مستخدم جديد: ${username}`);
         }
         
-        await pool.query(
-            'UPDATE users SET last_active = CURRENT_TIMESTAMP WHERE username = $1',
-            [username]
-        );
-        
-        const user = result.rows[0];
-        user.referrals = user.referrals || [];
+        user.lastActive = new Date();
+        await user.save();
         
         res.json({
             username: user.username,
             points: user.points,
-            walletBalance: user.wallet_balance,
+            walletBalance: user.walletBalance,
             spins: user.spins,
-            lastCheckin: user.last_checkin,
+            lastCheckin: user.lastCheckin,
             referrals: user.referrals,
-            pendingWithdrawals: []
+            pendingWithdrawals: user.pendingWithdrawals.filter(w => w.status === 'pending')
         });
     } catch (error) {
         console.error('خطأ في جلب المستخدم:', error);
@@ -193,33 +132,28 @@ app.get('/api/user/:username', async (req, res) => {
     }
 });
 
-// API: Save user data
+// ✅ أهم حاجة: API حفظ النقاط
 app.post('/api/save-user', async (req, res) => {
     try {
         const { username, data } = req.body;
         
-        await pool.query(
-            `UPDATE users SET 
-                points = $1,
-                wallet_balance = $2,
-                spins = $3,
-                last_checkin = $4,
-                referrals = $5,
-                last_active = CURRENT_TIMESTAMP
-            WHERE username = $6`,
-            [
-                data.points || 0,
-                data.walletBalance || 0,
-                data.spins || 3,
-                data.lastCheckin,
-                data.referrals || [],
-                username
-            ]
+        const user = await User.findOneAndUpdate(
+            { username },
+            {
+                points: data.points,
+                walletBalance: data.walletBalance,
+                spins: data.spins,
+                lastCheckin: data.lastCheckin,
+                referrals: data.referrals,
+                lastActive: new Date()
+            },
+            { new: true, upsert: true }
         );
         
-        res.json({ success: true });
+        console.log(`✅ تم حفظ نقاط ${username}: ${data.points}`);
+        res.json({ success: true, user });
     } catch (error) {
-        console.error('خطأ في حفظ المستخدم:', error);
+        console.error('❌ خطأ في حفظ المستخدم:', error);
         res.status(500).json({ error: 'خطأ في الخادم' });
     }
 });
@@ -229,26 +163,22 @@ app.post('/api/invite', async (req, res) => {
     try {
         const { username, friendUsername } = req.body;
         
-        const friend = await pool.query('SELECT * FROM users WHERE username = $1', [friendUsername]);
-        if (friend.rows.length === 0) {
-            return res.json({ success: false, message: 'الصديق غير موجود في التطبيق' });
+        const friend = await User.findOne({ username: friendUsername });
+        if (!friend) {
+            return res.json({ success: false, message: 'الصديق غير موجود' });
         }
         
-        const user = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-        if (user.rows.length === 0) {
+        const user = await User.findOne({ username });
+        if (!user) {
             return res.json({ success: false, message: 'المستخدم غير موجود' });
         }
         
-        const referrals = user.rows[0].referrals || [];
-        if (referrals.includes(friendUsername)) {
-            return res.json({ success: false, message: 'تمت دعوة هذا الصديق من قبل' });
+        if (user.referrals.includes(friendUsername)) {
+            return res.json({ success: false, message: 'تمت الدعوة من قبل' });
         }
         
-        referrals.push(friendUsername);
-        await pool.query(
-            'UPDATE users SET referrals = $1 WHERE username = $2',
-            [referrals, username]
-        );
+        user.referrals.push(friendUsername);
+        await user.save();
         
         res.json({ success: true });
     } catch (error) {
@@ -262,30 +192,14 @@ app.post('/api/withdraw', async (req, res) => {
     try {
         const { username, withdrawal } = req.body;
         
-        const user = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-        if (user.rows.length === 0) {
+        const user = await User.findOne({ username });
+        if (!user) {
             return res.json({ success: false, message: 'المستخدم غير موجود' });
         }
         
-        await pool.query(
-            `INSERT INTO withdrawals 
-                (username, method, method_name, account_details, points, amount_egp, status)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [
-                username,
-                withdrawal.method,
-                withdrawal.methodName,
-                withdrawal.accountDetails,
-                withdrawal.points,
-                withdrawal.amountEGP,
-                'pending'
-            ]
-        );
-        
-        await pool.query(
-            'UPDATE users SET wallet_balance = wallet_balance - $1 WHERE username = $2',
-            [withdrawal.points, username]
-        );
+        user.pendingWithdrawals.push(withdrawal);
+        user.walletBalance -= withdrawal.points;
+        await user.save();
         
         const adminChatId = process.env.ADMIN_CHAT_ID;
         if (adminChatId) {
@@ -302,7 +216,7 @@ app.post('/api/withdraw', async (req, res) => {
 });
 
 // ----------------------------------------
-// ✅ 10. لوحة تحكم المشرف
+// ✅ لوحة التحكم
 // ----------------------------------------
 app.get('/admin/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin-login.html'));
@@ -311,9 +225,9 @@ app.get('/admin/login', (req, res) => {
 app.post('/admin/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        const result = await pool.query('SELECT * FROM admins WHERE username = $1', [username]);
+        const admin = await Admin.findOne({ username });
         
-        if (result.rows.length > 0 && await bcrypt.compare(password, result.rows[0].password)) {
+        if (admin && await bcrypt.compare(password, admin.password)) {
             req.session.admin = true;
             res.redirect('/admin/dashboard');
         } else {
@@ -331,19 +245,12 @@ app.get('/admin/dashboard', async (req, res) => {
     }
     
     try {
-        const usersResult = await pool.query('SELECT * FROM users ORDER BY points DESC');
-        const withdrawalsResult = await pool.query("SELECT * FROM withdrawals WHERE status = 'pending'");
-        
-        const users = usersResult.rows.map(user => ({
-            ...user,
-            referrals: user.referrals || []
-        }));
-        
+        const users = await User.find().sort({ points: -1 });
         const stats = {
             totalUsers: users.length,
-            totalPoints: users.reduce((sum, u) => sum + (u.points || 0), 0),
-            totalWithdrawn: users.reduce((sum, u) => sum + (u.wallet_balance || 0), 0),
-            pendingWithdrawals: withdrawalsResult.rows.length
+            totalPoints: users.reduce((sum, u) => sum + u.points, 0),
+            totalWithdrawn: users.reduce((sum, u) => sum + u.walletBalance, 0),
+            pendingWithdrawals: users.reduce((sum, u) => sum + u.pendingWithdrawals.filter(w => w.status === 'pending').length, 0)
         };
         
         res.render('dashboard', { users, stats });
@@ -359,20 +266,9 @@ app.get('/admin/api/user/:username', async (req, res) => {
     }
     
     try {
-        const userResult = await pool.query('SELECT * FROM users WHERE username = $1', [req.params.username]);
-        const withdrawalsResult = await pool.query('SELECT * FROM withdrawals WHERE username = $1 ORDER BY date DESC', [req.params.username]);
-        
-        if (userResult.rows.length === 0) {
-            return res.status(404).json({ error: 'المستخدم غير موجود' });
-        }
-        
-        const user = userResult.rows[0];
-        user.pendingWithdrawals = withdrawalsResult.rows;
-        user.referrals = user.referrals || [];
-        
+        const user = await User.findOne({ username: req.params.username });
         res.json(user);
     } catch (error) {
-        console.error('خطأ في جلب بيانات المستخدم:', error);
         res.status(500).json({ error: 'خطأ في الخادم' });
     }
 });
@@ -384,20 +280,22 @@ app.post('/admin/api/user/update-points', async (req, res) => {
     
     try {
         const { username, points, action } = req.body;
+        const user = await User.findOne({ username });
         
-        if (action === 'set') {
-            await pool.query(
-                'UPDATE users SET points = $1, wallet_balance = $1 WHERE username = $2',
-                [points, username]
-            );
-        } else if (action === 'add') {
-            await pool.query(
-                'UPDATE users SET points = points + $1, wallet_balance = wallet_balance + $1 WHERE username = $2',
-                [points, username]
-            );
+        if (!user) {
+            return res.status(404).json({ error: 'المستخدم غير موجود' });
         }
         
-        res.json({ success: true });
+        if (action === 'set') {
+            user.points = points;
+            user.walletBalance = points;
+        } else if (action === 'add') {
+            user.points += points;
+            user.walletBalance += points;
+        }
+        
+        await user.save();
+        res.json({ success: true, user });
     } catch (error) {
         console.error('خطأ في تحديث النقاط:', error);
         res.status(500).json({ error: 'خطأ في الخادم' });
@@ -410,29 +308,28 @@ app.post('/admin/api/withdrawal/:id/:action', async (req, res) => {
     }
     
     try {
-        const { id, action } = req.params;
+        const withdrawalId = req.params.id;
+        const action = req.params.action;
         
-        const withdrawalResult = await pool.query('SELECT * FROM withdrawals WHERE id = $1', [id]);
-        if (withdrawalResult.rows.length === 0) {
+        const user = await User.findOne({ 'pendingWithdrawals._id': withdrawalId });
+        if (!user) {
             return res.status(404).json({ error: 'طلب السحب غير موجود' });
         }
         
-        const withdrawal = withdrawalResult.rows[0];
-        const newStatus = action === 'approve' ? 'approved' : 'rejected';
-        
-        await pool.query('UPDATE withdrawals SET status = $1 WHERE id = $2', [newStatus, id]);
+        const withdrawal = user.pendingWithdrawals.id(withdrawalId);
+        withdrawal.status = action === 'approve' ? 'approved' : 'rejected';
         
         if (action === 'reject') {
-            await pool.query(
-                'UPDATE users SET wallet_balance = wallet_balance + $1, points = points + $1 WHERE username = $2',
-                [withdrawal.points, withdrawal.username]
-            );
+            user.walletBalance += withdrawal.points;
+            user.points += withdrawal.points;
         }
         
-        bot.sendMessage(withdrawal.username, 
+        await user.save();
+        
+        bot.sendMessage(user.username, 
             action === 'approve' 
-                ? `✅ تمت الموافقة على طلب السحب بقيمة ${withdrawal.amount_egp} جنيه`
-                : `❌ تم رفض طلب السحب بقيمة ${withdrawal.amount_egp} جنيه`
+                ? `✅ تمت الموافقة على طلب السحب بقيمة ${withdrawal.amountEGP} جنيه`
+                : `❌ تم رفض طلب السحب بقيمة ${withdrawal.amountEGP} جنيه`
         ).catch(e => console.log('خطأ في إرسال إشعار للمستخدم:', e.message));
         
         res.json({ success: true });
@@ -448,28 +345,38 @@ app.get('/admin/logout', (req, res) => {
 });
 
 // ----------------------------------------
-// ✅ 11. أوامر البوت
+// ✅ إنشاء مشرف افتراضي
+// ----------------------------------------
+async function createDefaultAdmin() {
+    try {
+        const adminExists = await Admin.findOne({ username: 'admin' });
+        if (!adminExists) {
+            const hashedPassword = await bcrypt.hash('admin123', 10);
+            const admin = new Admin({ username: 'admin', password: hashedPassword });
+            await admin.save();
+            console.log('✅ تم إنشاء مشرف افتراضي (admin/admin123)');
+        }
+    } catch (error) {
+        console.error('خطأ في إنشاء المشرف:', error);
+    }
+}
+createDefaultAdmin();
+
+// ----------------------------------------
+// ✅ أوامر البوت
 // ----------------------------------------
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     const username = msg.from.username || msg.from.first_name;
-    console.log(`📩 تم استلام /start من ${username} (Chat ID: ${chatId})`);
+    console.log(`📩 /start من ${username}`);
     
     try {
-        let result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-        
-        if (result.rows.length === 0) {
-            result = await pool.query(
-                'INSERT INTO users (username) VALUES ($1) RETURNING *',
-                [username]
-            );
-            console.log(`✅ مستخدم جديد من البوت: ${username}`);
+        let user = await User.findOne({ username });
+        if (!user) {
+            user = new User({ username });
+            await user.save();
+            console.log(`✅ مستخدم جديد: ${username}`);
         }
-        
-        await pool.query(
-            'UPDATE users SET last_active = CURRENT_TIMESTAMP WHERE username = $1',
-            [username]
-        );
         
         const appUrl = `${appBaseUrl}/?user=${username}`;
         
@@ -481,9 +388,8 @@ bot.onText(/\/start/, async (msg) => {
                 ]
             }
         });
-        console.log(`✅ تم إرسال الرد بنجاح إلى ${username}`);
     } catch (error) {
-        console.error('❌ خطأ في معالجة /start:', error.message);
+        console.error('❌ خطأ في /start:', error.message);
     }
 });
 
@@ -492,13 +398,8 @@ bot.onText(/\/admin/, (msg) => {
     bot.sendMessage(chatId, `🔐 لوحة تحكم المشرف:\n${appBaseUrl}/admin/login`);
 });
 
-// استقبال أي رسالة نصية أخرى (للتأكد)
-bot.on('message', (msg) => {
-    console.log(`📨 رسالة واردة من ${msg.from.username || msg.from.first_name}: ${msg.text}`);
-});
-
 // ----------------------------------------
-// ✅ 12. تشغيل الخادم
+// ✅ تشغيل الخادم
 // ----------------------------------------
 app.listen(PORT, () => {
     console.log(`✅ الخادم يعمل على المنفذ ${PORT}`);
