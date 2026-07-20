@@ -1,1 +1,0 @@
-# earn-mini-app.up.railway.app
